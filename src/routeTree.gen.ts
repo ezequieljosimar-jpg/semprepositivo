@@ -10,33 +10,73 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EncerramentoRouteImport } from './routes/encerramento'
+import { Route as SumarioRouteImport } from './routes/sumario'
+import { Route as DiaNRouteImport } from './routes/dia.$n'
+import { Route as FaseNRouteImport } from './routes/fase.$n'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EncerramentoRoute = EncerramentoRouteImport.update({
+  id: '/encerramento',
+  path: '/encerramento',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SumarioRoute = SumarioRouteImport.update({
+  id: '/sumario',
+  path: '/sumario',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiaNRoute = DiaNRouteImport.update({
+  id: '/dia/$n',
+  path: '/dia/$n',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaseNRoute = FaseNRouteImport.update({
+  id: '/fase/$n',
+  path: '/fase/$n',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/encerramento': typeof EncerramentoRoute
+  '/sumario': typeof SumarioRoute
+  '/dia/$n': typeof DiaNRoute
+  '/fase/$n': typeof FaseNRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/encerramento': typeof EncerramentoRoute
+  '/sumario': typeof SumarioRoute
+  '/dia/$n': typeof DiaNRoute
+  '/fase/$n': typeof FaseNRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/encerramento': typeof EncerramentoRoute
+  '/sumario': typeof SumarioRoute
+  '/dia/$n': typeof DiaNRoute
+  '/fase/$n': typeof FaseNRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/encerramento' | '/sumario' | '/dia/$n' | '/fase/$n'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/encerramento' | '/sumario' | '/dia/$n' | '/fase/$n'
+  id: '__root__' | '/' | '/encerramento' | '/sumario' | '/dia/$n' | '/fase/$n'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  EncerramentoRoute: typeof EncerramentoRoute
+  SumarioRoute: typeof SumarioRoute
+  DiaNRoute: typeof DiaNRoute
+  FaseNRoute: typeof FaseNRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +88,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/encerramento': {
+      id: '/encerramento'
+      path: '/encerramento'
+      fullPath: '/encerramento'
+      preLoaderRoute: typeof EncerramentoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sumario': {
+      id: '/sumario'
+      path: '/sumario'
+      fullPath: '/sumario'
+      preLoaderRoute: typeof SumarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dia/$n': {
+      id: '/dia/$n'
+      path: '/dia/$n'
+      fullPath: '/dia/$n'
+      preLoaderRoute: typeof DiaNRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fase/$n': {
+      id: '/fase/$n'
+      path: '/fase/$n'
+      fullPath: '/fase/$n'
+      preLoaderRoute: typeof FaseNRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  EncerramentoRoute: EncerramentoRoute,
+  SumarioRoute: SumarioRoute,
+  DiaNRoute: DiaNRoute,
+  FaseNRoute: FaseNRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
