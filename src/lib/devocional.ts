@@ -1,4 +1,4 @@
-import raw from "@/content/devocional.txt?raw";
+import raw from "../content/devocional.txt?raw";
 
 export type TaskItem = { type: "text"; text: string } | { type: "write"; label?: string; lines: number };
 
