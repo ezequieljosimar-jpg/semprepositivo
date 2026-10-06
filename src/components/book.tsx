@@ -63,26 +63,17 @@ export function useStored(key: string) {
   return [value, update] as const;
 }
 
-export function useDone() {
-  const [done, setDone] = useState<number[]>([]);
-  useEffect(() => {
-    try {
-      setDone(JSON.parse(localStorage.getItem(KEY + "done") ?? "[]"));
-    } catch {
-      setDone([]);
-    }
-  }, []);
-  const toggle = (n: number) => {
-    setDone((prev) => {
-      const next = prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n];
-      localStorage.setItem(KEY + "done", JSON.stringify(next));
-      return next;
-    });
-  };
-  return { done, toggle };
-}
+export { useJourney as useDone } from "@/hooks/use-journey";
 
-export function WriteArea({ storageKey, lines, label }: { storageKey: string; lines: number; label?: string | undefined }) {
+export function WriteArea({
+  storageKey,
+  lines,
+  label,
+}: {
+  storageKey: string;
+  lines: number;
+  label?: string | undefined;
+}) {
   const [v, set] = useStored(storageKey);
   return (
     <div className="flex gap-3">
