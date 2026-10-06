@@ -42,6 +42,9 @@ beforeAll(async () => {
   await db.exec(
     await readFile("supabase/migrations/20261006023000_accounts_and_access.sql", "utf8"),
   );
+  await db.exec(
+    await readFile("supabase/migrations/20261006230000_twelve_hour_progression.sql", "utf8"),
+  );
   await db.query(
     "insert into auth.users(id,email) values($1,'test-a@example.invalid'),($2,'test-b@example.invalid')",
     [A, B],
@@ -120,8 +123,14 @@ describe("Account database authorization and persistence", () => {
   it("6. starts a new authorized account at day one", async () => {
     expect(await progress()).toMatchObject({ completed: 0, currentDay: 1 });
   });
-  it("7. records day one with a server timestamp and unlocks day two", async () => {
-    expect(await complete(1)).toMatchObject({ completed: 1, currentDay: 2 });
+  it("7. records day one and keeps day two locked for twelve hours", async () => {
+    const first = await complete(1);
+    expect(first).toMatchObject({ completed: 1, currentDay: 2 });
+    expect(first.nextAvailableAt).toBeTruthy();
+    expect(canRead(first, 1)).toBe(true);
+    expect(canRead(first, 2)).toBe(false);
+    await expect(complete(2)).rejects.toThrow("Wait 12 hours");
+    expect(await complete(1)).toEqual(first);
     const rows = (
       await db.query<{ day_number: number; completed_at: Date }>(
         "select day_number, completed_at from public.devotional_day_completions",
@@ -149,14 +158,24 @@ describe("Account database authorization and persistence", () => {
     await asUser(A);
     expect(await progress()).toMatchObject({ completed: 1, currentDay: 2 });
   }, 30000);
-  it("11. keeps completions from long ago without a sequence reset", async () => {
+  it("11. uses the database clock and unlocks only after twelve hours", async () => {
     await db.exec("reset role");
     await db.query(
-      "update public.devotional_day_completions set completed_at = now() - interval '1 year' where user_id=$1",
+      "update public.devotional_day_completions set completed_at = clock_timestamp() - interval '11 hours 59 minutes' where user_id=$1",
+      [A],
+    );
+    await asUser(A);
+    expect(canRead(await progress(), 2)).toBe(false);
+    await expect(complete(2)).rejects.toThrow("Wait 12 hours");
+    await db.exec("reset role");
+    await db.exec("reset role");
+    await db.query(
+      "update public.devotional_day_completions set completed_at = clock_timestamp() - interval '12 hours' where user_id=$1",
       [A],
     );
     await asUser(A);
     expect(await progress()).toMatchObject({ completed: 1, currentDay: 2 });
+    expect(canRead(await progress(), 2)).toBe(true);
   });
   it("12. keeps future content authorization denied", async () => {
     expect(canRead(await progress(), 30)).toBe(false);
@@ -165,6 +184,14 @@ describe("Account database authorization and persistence", () => {
   it("13. keeps completed days available and independent between accounts", async () => {
     expect(await complete(1)).toMatchObject({ completed: 1, currentDay: 2 });
     expect(await complete(2)).toMatchObject({ completed: 2, currentDay: 3 });
+    expect(canRead(await progress(), 3)).toBe(false);
+    await expect(complete(3)).rejects.toThrow("Wait 12 hours");
+    await expect(
+      db.query(
+        "update public.devotional_day_completions set completed_at = now() - interval '12 hours' where user_id=$1",
+        [A],
+      ),
+    ).rejects.toThrow();
     expect(canRead(await progress(), 1)).toBe(true);
     await db.exec("reset role");
     await db.query("update public.devotional_access set access_status='active' where user_id=$1", [

@@ -1,37 +1,37 @@
-# Ativação da progressão guiada
+# Progressão guiada com intervalo de 12 horas
 
-A implementação reutiliza TanStack Start, TanStack Query, os componentes e as rotas existentes. No modo anônimo, o progresso fica em uma sessão criptografada e assinada, persistida em cookie HttpOnly no mesmo navegador. A arquitetura de contas e banco está preparada separadamente, ainda sem serviço de produção configurado; consulte `docs/contas-e-pagamentos.md` antes de ativá-la.
+O projeto reutiliza TanStack Start, TanStack Query, as páginas e os componentes existentes. Em produção, Supabase Auth identifica a conta e PostgreSQL armazena o progresso. Cadastro não libera o produto: a conta precisa de acesso `active`. O conteúdo dos 90 dias permanece no servidor.
 
-## Configuração necessária
+## Regra
 
-1. Gere uma chave com `openssl rand -hex 32`.
-2. Cadastre o valor como `PROGRESS_SESSION_SECRET` nos ambientes **de servidor** de preview e produção do Lovable. Não use prefixo `VITE_`.
-3. Mantenha a mesma chave entre versões e reinícios. Não publique a chave em código, commits ou mensagens. Trocar a chave invalida as sessões existentes.
-4. Depois de configurar, incorpore a branch e atualize a publicação.
+- Dia 1 disponível para uma conta autorizada sem conclusões.
+- Clicar em “Concluir este dia” salva o horário no servidor. O próximo dia permanece bloqueado durante 12 horas e abre a partir desse horário mais 12 horas.
+- Ler ou abrir a página, sem concluir, não inicia o prazo. Não é possível comprovar a leitura; a conclusão é a declaração do leitor.
+- Somente um próximo dia pode ficar disponível. Tempo decorrido não conclui dias nem acumula liberações.
+- Dias concluídos continuam disponíveis. Repetir uma conclusão preserva seu horário e não reinicia a espera.
+- O Dia 90 libera o encerramento imediatamente ao ser concluído.
+- As conclusões existentes são preservadas e seus horários já salvos passam a definir o prazo.
+- A página exibe o tempo restante usando o estilo existente. O relógio do dispositivo serve apenas para a indicação visual; o servidor decide o acesso e o banco decide se pode registrar a próxima conclusão.
 
-Sem essa configuração, o servidor rejeita o acesso em vez de usar uma chave insegura ou liberar conteúdo. Por isso, esta alteração deve permanecer em uma branch de revisão até a configuração estar pronta.
+## Segurança e persistência
 
-## Comportamento
+Aplicar as migrações em ordem:
 
-- Dia 1 inicialmente disponível. Concluir explicitamente libera somente o próximo.
-- Conclusões são idempotentes; não há ação de desfazer que bloqueie dias anteriores.
-- Nenhuma regra utiliza data, sequência diária, contagem regressiva ou faltas.
-- As respostas escritas continuam nos mesmos registros de localStorage.
-- O catálogo enviado ao navegador contém somente títulos e fases. O servidor valida a sessão antes de retornar o texto de um dia ou o encerramento.
-- Respostas personalizadas usam `Cache-Control: private, no-store`.
-- O cookie persiste após fechar o navegador. Limpar os dados do site, usar outro navegador/dispositivo ou perder o cookie perde a identificação anônima. Navegadores também podem limitar a duração dos cookies; para recuperação e sincronização entre dispositivos será necessária uma conta com armazenamento em banco.
-- Os antigos marcadores livres de localStorage não autorizam acesso no servidor. Eles não são importados automaticamente como conclusões confiáveis. As respostas antigas não são apagadas.
+1. `supabase/migrations/20261006023000_accounts_and_access.sql`
+2. `supabase/migrations/20261006230000_twelve_hour_progression.sql`
 
-`progress-session.server.ts` é o ponto de persistência. Com `DEVOCIONAL_ACCESS_MODE=accounts`, ele seleciona o adaptador de conta e usa funções transacionais do banco vinculadas ao usuário autenticado. Sem essa ativação, mantém o comportamento anônimo anterior.
+A segunda migração substitui as funções de progresso e conclusão sem duplicar tabelas nem alterar registros. A função de conclusão serializa operações por usuário e usa o relógio do banco. Usuários não podem inserir, alterar ou apagar conclusões diretamente, nem alterar seu acesso ao produto. O servidor verifica `nextAvailableAt` antes de retornar qualquer conteúdo protegido. Parâmetros da URL, localStorage e horário do dispositivo não autorizam leitura.
+
+Sessões persistem no cookie criptografado HttpOnly. A chave `PROGRESS_SESSION_SECRET` deve ser estável, somente no servidor e ter ao menos 32 caracteres. No modo anônimo de compatibilidade, o mesmo intervalo fica no cookie autenticado. Respostas personalizadas usam `Cache-Control: private, no-store`. As respostas escritas permanecem nos registros existentes.
 
 ## Verificação
 
 ```sh
-npm install
-npx tsc --noEmit
 npm test
+npx tsc --noEmit
 npm run build
 node scripts/test-journey.mjs
+node scripts/test-auth-session.mjs
 ```
 
-O teste HTTP cria uma chave apenas para testes, inicia o servidor, verifica bloqueio das rotas e das funções de servidor, tenta adulterar o cookie, reinicia o servidor com a mesma chave e conclui os 90 dias. Não utiliza dados de visitantes reais.
+Os testes unitários cobrem o limite exato de 12 horas e os 90 dias em sequência. PostgreSQL isolado executa as migrações reais, nega conclusão antes do prazo e alteração de horário pelo usuário, libera após o prazo e preserva idempotência, isolamento e progresso após reinício. Os testes HTTP da aplicação negam leitura direta e chamadas de servidor durante a espera; mantêm o prazo após atualização/reinício e ignoram parâmetros falsos de liberação. Não usam credenciais, compras ou contas de produção.

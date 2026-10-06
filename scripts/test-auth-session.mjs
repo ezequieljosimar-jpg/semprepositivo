@@ -12,6 +12,8 @@ const uid = "00000000-0000-4000-8000-000000000001";
 let confirmed = false;
 let registered = false;
 let access = "pending";
+let completed = 0;
+let nextAvailableAt = null;
 let server;
 let cookie = "";
 let ids;
@@ -66,7 +68,7 @@ const fixture = createServer(async (req, res) => {
     });
   if (url.pathname.endsWith("/devotional_day_completions")) return reply([]);
   if (url.pathname.endsWith("/get_devotional_progress"))
-    return reply({ completed: 0, currentDay: 1, ownerId: uid });
+    return reply({ completed, currentDay: completed + 1, nextAvailableAt, ownerId: uid });
   reply({ error: "Unexpected fixture request" }, 500);
 });
 await new Promise((resolve) => fixture.listen(3015, "127.0.0.1", resolve));
@@ -172,6 +174,17 @@ try {
   access = "active";
   assert.equal((await (await transport("/dia/1")).text()).includes("Concluir este dia"), true);
   assert.equal((await (await transport("/dia/30")).text()).includes("Ainda não"), true);
+  completed = 1;
+  nextAvailableAt = new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString();
+  assert.equal((await (await transport("/dia/1")).text()).includes("Dia concluído"), true);
+  const waiting = await (await transport("/dia/2?nextAvailableAt=2000-01-01&completed=90")).text();
+  assert.equal(waiting.includes("Dia bloqueado"), true);
+  assert.equal(waiting.includes("Concluir este dia"), false);
+  await stop();
+  await start();
+  assert.equal((await (await transport("/dia/2")).text()).includes("Dia bloqueado"), true);
+  nextAvailableAt = new Date(Date.now() - 1000).toISOString(); // Isolated backend fixture clock only
+  assert.equal((await (await transport("/dia/2")).text()).includes("Concluir este dia"), true);
   assert.equal((await rpc("signOut")).ok, true);
   assert.equal(await rpc("getMyAccount", undefined, "GET"), null);
   assert.equal(

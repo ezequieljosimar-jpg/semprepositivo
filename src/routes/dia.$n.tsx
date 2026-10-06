@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Footer, Rule, SectionLabel, TopBar, WriteArea, pad, useDone } from "@/components/book";
 import { readDay } from "@/lib/journey";
-import { LockedDay, JourneyProgress, JourneyDayLink } from "@/components/journey";
+import { LockedDay, JourneyProgress, JourneyDayLink, NextDayWait } from "@/components/journey";
 import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/dia/$n")({
@@ -44,7 +44,7 @@ function Paras({ items, className = "" }: { items: string[]; className?: string 
 
 function Dia() {
   const { day, phase } = Route.useLoaderData();
-  const { done, complete } = useDone();
+  const { done, complete, canRead } = useDone();
   const [saving, setSaving] = useState(false);
   const [confirmation, setConfirmation] = useState(false);
   const [error, setError] = useState("");
@@ -174,13 +174,17 @@ function Dia() {
             <p>Dia {pad(day.n)} concluído.</p>
             <p className="mt-2 font-serif italic">Você não precisa correr. Apenas continue.</p>
             {day.n < 90 ? (
-              <Link
-                to="/dia/$n"
-                params={{ n: String(day.n + 1) }}
-                className="font-label mt-4 inline-block border border-foreground px-6 py-3 text-sm uppercase"
-              >
-                Continuar para o Dia {pad(day.n + 1)}
-              </Link>
+              canRead(day.n + 1) ? (
+                <Link
+                  to="/dia/$n"
+                  params={{ n: String(day.n + 1) }}
+                  className="font-label mt-4 inline-block border border-foreground px-6 py-3 text-sm uppercase"
+                >
+                  Continuar para o Dia {pad(day.n + 1)}
+                </Link>
+              ) : (
+                <NextDayWait />
+              )
             ) : (
               <Link
                 to="/encerramento"

@@ -1,3 +1,7 @@
+## Intervalo entre dias — 6 de outubro de 2026
+
+A progressão agora exige 12 horas após a conclusão anterior. Aplicar também `supabase/migrations/20261006230000_twelve_hour_progression.sql`. A alteração preserva autenticação, acesso ao produto, tabelas, conclusões existentes e conteúdo. Consulte `docs/progressao.md`.
+
 ## Revisão da autenticação — 6 de outubro de 2026
 
 A causa do cadastro recusado era o provedor de e-mail desativado no Cloud. Ele agora está habilitado, com confirmação obrigatória. A conta real do proprietário foi confirmada e o banco registra login. Cadastro continua criando acesso `pending`; a conta do proprietário recebeu liberação manual para testes, sem registrar compra.
@@ -8,7 +12,7 @@ O botão “Continuar com Google” consulta `/auth/v1/settings` no servidor e s
 
 **Google ainda desativado em produção.** Em More → Cloud → Users → Auth settings → Google, falta habilitar o método e selecionar a configuração. O Cloud oferece “Managed by Lovable”, que dispensa Client ID/Secret próprios. Se for escolhido “Your own credentials”, configurar no Google Cloud um cliente OAuth do tipo Web application e a tela de consentimento; salvar Client ID e Client Secret no painel seguro do provedor; cadastrar exatamente as URIs de retorno mostradas pelo painel no Google Cloud. No Auth, permitir também `https://semprepositivo.lovable.app/auth/retorno` como destino da aplicação. Não confundir essa URL de retorno da aplicação com o callback do provedor exibido no painel. Referências: https://docs.lovable.dev/features/google-auth e https://supabase.com/docs/guides/auth/social-login/auth-google.
 
-Validação desta revisão: testes unitários e PostgreSQL isolado, SDK real do Supabase com respostas de Auth isoladas e teste HTTP com cookies reais da aplicação (`node scripts/test-auth-session.mjs`). O teste HTTP cobre cadastro, confirmação obrigatória, login, atualização, persistência após reinício do processo, acesso pendente, acesso ativo, dia futuro bloqueado, saída e nova entrada. `node scripts/test-journey.mjs` cobre os dez cenários da progressão. O teste isolado não envia e-mails nem cria contas no serviço de produção. Cadastro, confirmação e login reais do proprietário foram corroborados no banco; Google real depende da ativação/configuração e não foi declarado validado.
+Validação desta revisão: testes unitários e PostgreSQL isolado, SDK real do Supabase com respostas de Auth isoladas e teste HTTP com cookies reais da aplicação (`node scripts/test-auth-session.mjs`). O teste HTTP cobre cadastro, confirmação obrigatória, login, atualização, persistência após reinício do processo, acesso pendente, acesso ativo, dia futuro bloqueado, saída e nova entrada. `node scripts/test-journey.mjs` cobre a progressão protegida; a regra atual de 12 horas e suas verificações estão em `docs/progressao.md`. O teste isolado não envia e-mails nem cria contas no serviço de produção. Cadastro, confirmação e login reais do proprietário foram corroborados no banco; Google real depende da ativação/configuração e não foi declarado validado.
 
 Para pagamentos: escolher o provedor e o produto; configurar credenciais no servidor; implementar o endpoint e o adaptador com verificação de assinatura, identificação do comprador e idempotência; mapear aprovação, reembolso, cancelamento e chargeback para o acesso. Nada disso é ativado nesta revisão.
 

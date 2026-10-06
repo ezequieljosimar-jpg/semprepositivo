@@ -2,9 +2,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { Route as RootRoute } from "@/routes/__root";
 import { completeDay, getProgress } from "@/lib/journey";
-import { canRead, type Progress } from "@/lib/progression";
+import { useEffect } from "react";
+import { waitingForNextDay, canRead, type Progress } from "@/lib/progression";
 
-export function useJourney() {
+export function useJourney(watchRelease = false) {
   const { progress } = RootRoute.useRouteContext();
   const client = useQueryClient();
   const router = useRouter();
@@ -13,9 +14,23 @@ export function useJourney() {
     queryKey,
     queryFn: () => getProgress(),
     initialData: progress,
+    refetchInterval: watchRelease ? 60_000 : false,
     staleTime: 0,
   });
   const value = query.data;
+  useEffect(() => {
+    if (!watchRelease || !value.nextAvailableAt || !waitingForNextDay(value)) return;
+    const timer = setTimeout(
+      async () => {
+        await client.invalidateQueries({
+          queryKey: ["journey-progress", value.ownerId ?? "anonymous"],
+        });
+        await router.invalidate();
+      },
+      Math.max(1, Date.parse(value.nextAvailableAt) - Date.now() + 250),
+    );
+    return () => clearTimeout(timer);
+  }, [watchRelease, value.nextAvailableAt, value.ownerId, client, router]);
   return {
     ...value,
     done: Array.from({ length: value.completed }, (_, i) => i + 1),
@@ -28,4 +43,9 @@ export function useJourney() {
       return next;
     },
   };
+}
+
+export function JourneyReleaseWatcher() {
+  useJourney(true);
+  return null;
 }

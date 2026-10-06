@@ -86,10 +86,11 @@ const persistedProgress = z.object({
   completed: z.number().int().min(0).max(90),
   currentDay: z.number().int().min(1).max(90).nullable(),
   ownerId: z.string().uuid(),
+  nextAvailableAt: z.string().datetime({ offset: true }).nullable(),
 });
 function checkedProgress(data: unknown, userId: string): Progress {
   const result = persistedProgress.parse(data);
-  const canonical = progressFrom(result.completed);
+  const canonical = progressFrom(result.completed, result.nextAvailableAt);
   if (result.ownerId !== userId || result.currentDay !== canonical.currentDay)
     throw new Error("Invalid account progress.");
   return { ...canonical, ownerId: userId };

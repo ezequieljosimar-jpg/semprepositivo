@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+import { JourneyReleaseWatcher } from "@/hooks/use-journey";
 import { getProgress } from "@/lib/journey";
 
 import appCss from "../styles.css?url";
@@ -129,6 +130,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <JourneyReleaseWatcher />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>

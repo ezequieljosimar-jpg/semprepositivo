@@ -17,7 +17,11 @@ export async function progressSession(publicView = false) {
     );
   }
   setResponseHeader("Cache-Control", "private, no-store");
-  const session = await createCookieSession<{ completed?: number; version?: number }>({
+  const session = await createCookieSession<{
+    completed?: number;
+    version?: number;
+    nextAvailableAt?: string | null;
+  }>({
     name: "sempre-positivo-progress",
     password,
     maxAge: 60 * 60 * 24 * 365 * 10,
@@ -30,12 +34,16 @@ export async function progressSession(publicView = false) {
     },
   });
   return {
-    read: async () => progressFrom(session.data.completed),
+    read: async () => progressFrom(session.data.completed, session.data.nextAvailableAt),
     async complete(day: number) {
-      const previous = progressFrom(session.data.completed);
+      const previous = progressFrom(session.data.completed, session.data.nextAvailableAt);
       const next = completeSequentially(previous, day);
       if (next.completed !== previous.completed) {
-        await session.update({ completed: next.completed, version: 1 });
+        await session.update({
+          completed: next.completed,
+          nextAvailableAt: next.nextAvailableAt ?? null,
+          version: 2,
+        });
       }
       return next;
     },

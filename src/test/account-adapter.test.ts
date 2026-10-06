@@ -72,7 +72,7 @@ beforeEach(() => {
     error: null,
   });
   mocks.client.rpc.mockResolvedValue({
-    data: { completed: 0, currentDay: 1, ownerId: A },
+    data: { completed: 0, currentDay: 1, nextAvailableAt: null, ownerId: A },
     error: null,
   });
 });
@@ -92,14 +92,19 @@ describe("Account server boundary (isolated Auth adapter)", () => {
     expect(mocks.client.rpc).not.toHaveBeenCalled();
   });
   it("verifies identity with Auth and reads only the caller's database progress", async () => {
-    expect(await accountProgress().read()).toEqual({ completed: 0, currentDay: 1, ownerId: A });
+    expect(await accountProgress().read()).toEqual({
+      completed: 0,
+      currentDay: 1,
+      nextAvailableAt: null,
+      ownerId: A,
+    });
     expect(mocks.client.auth.getUser).toHaveBeenCalledWith("isolated-test-token");
     expect(mocks.eq).toHaveBeenCalledWith("user_id", A);
     expect(mocks.client.rpc).toHaveBeenCalledWith("get_devotional_progress");
   });
   it("rejects another account's progress even if a database response is incorrect", async () => {
     mocks.client.rpc.mockResolvedValue({
-      data: { completed: 17, currentDay: 18, ownerId: B },
+      data: { completed: 17, currentDay: 18, nextAvailableAt: null, ownerId: B },
       error: null,
     });
     await expect(accountProgress().read()).rejects.toThrow("Invalid account progress");
