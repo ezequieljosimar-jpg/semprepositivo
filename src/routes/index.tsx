@@ -31,8 +31,8 @@ function Index() {
             <span className="eyebrow opacity-70">Sempre Positivo</span>
           </div>
           <div className="animate-rise max-w-2xl">
-            <p className="eyebrow mb-6 text-ember">Devocional Sempre Positivo</p>
-            <h1 className="font-display text-7xl uppercase leading-[0.9] sm:text-8xl md:text-[9rem]">
+            <p className="eyebrow mb-10 text-ember">Devocional Sempre Positivo</p>
+            <h1 className="font-display text-7xl uppercase leading-[0.95] sm:text-8xl md:text-[9rem]">
               É amargo,
               <br />
               <span className="text-ember">mas</span> cura.
