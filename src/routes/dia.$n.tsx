@@ -1,5 +1,8 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Footer, Rule, SectionLabel, TopBar, WriteArea, pad, useDone } from "@/components/book";
+import dayOneLandscape from "@/assets/day-one-landscape.jpg";
+import { TriangleAlert, Pill, Pencil, HandHeart } from "lucide-react";
+import "@/day-one.css";
 import { getDay, getPhase } from "@/lib/devocional";
 
 export const Route = createFileRoute("/dia/$n")({
@@ -32,18 +35,21 @@ function Dia() {
   const { day, phase } = Route.useLoaderData();
   const { done, toggle } = useDone();
   const isDone = done.includes(day.n);
+  const referenceStyle = day.n === 1;
   const isPhaseEnd = day.n === phase.days[1];
   return (
-    <>
+    <div className={referenceStyle ? "day-one-design" : undefined}>
       <TopBar>
         <span className="font-label hidden text-xs text-muted-foreground sm:inline">
           Fase {phase.n} · {phase.name}
         </span>
       </TopBar>
+      {referenceStyle && <aside className="day-one-landscape" aria-hidden="true"><img src={dayOneLandscape} alt="" /><span>01</span></aside>}
       <main key={day.n} className="mx-auto max-w-2xl px-6 pt-20 animate-rise">
+        {referenceStyle && <div className="day-one-masthead"><span>Devocional <strong>Sempre Positivo</strong><em>É Amargo, Mas Cura.</em></span><span>Dia 01</span></div>}
         {/* Cabeçalho */}
         <div className="flex items-end gap-6 border-b border-foreground pb-6">
-          <span className="font-display text-[7rem] leading-[0.8] text-ember md:text-[9rem]">{pad(day.n)}</span>
+          <span className="day-number font-display text-[7rem] leading-[0.8] text-ember md:text-[9rem]">{referenceStyle ? `Dia ${pad(day.n)}` : pad(day.n)}</span>
           <span className="eyebrow pb-2 text-muted-foreground">Dia<br />de 90</span>
         </div>
         <h1 className="font-display mt-10 text-5xl uppercase leading-[0.95] md:text-6xl">{day.title}</h1>
@@ -60,19 +66,19 @@ function Dia() {
         <Rule className="my-16" />
 
         <section>
-          <SectionLabel>A verdade que dói</SectionLabel>
+          <SectionLabel>{referenceStyle && <TriangleAlert aria-hidden="true" />}A verdade que dói</SectionLabel>
           <Paras items={day.truth} className="text-xl leading-relaxed" />
         </section>
 
         <section className="mt-16 border-l-2 border-ember bg-secondary/60 px-6 py-8 md:px-10">
-          <SectionLabel>O remédio</SectionLabel>
+          <SectionLabel>{referenceStyle && <Pill aria-hidden="true" />}O remédio</SectionLabel>
           <Paras items={day.remedy} className="text-xl font-semibold leading-relaxed" />
         </section>
 
         {/* Tarefa */}
         <section className="page-sheet mt-20 px-6 py-10 md:px-10">
-          <SectionLabel>Tarefa para hoje</SectionLabel>
-          <p className="font-display text-2xl uppercase leading-tight">Não feche esta página sem responder</p>
+          <SectionLabel>{referenceStyle && <Pencil aria-hidden="true" />}{referenceStyle ? "Não feche esta página sem responder" : "Tarefa para hoje"}</SectionLabel>
+          {!referenceStyle && <p className="font-display text-2xl uppercase leading-tight">Não feche esta página sem responder</p>}
           <div className="mt-8 space-y-6">
             {day.task.map((t, i) =>
               t.type === "text" ? (
@@ -85,7 +91,7 @@ function Dia() {
         </section>
 
         <section className="mt-20">
-          <SectionLabel>Uma oração sem desculpas</SectionLabel>
+          <SectionLabel>{referenceStyle && <HandHeart aria-hidden="true" />}Uma oração sem desculpas</SectionLabel>
           <Paras items={day.prayer} className="font-serif text-2xl italic leading-relaxed" />
         </section>
 
@@ -137,6 +143,6 @@ function Dia() {
         </nav>
       </main>
       <Footer page={day.n} />
-    </>
+    </div>
   );
 }
