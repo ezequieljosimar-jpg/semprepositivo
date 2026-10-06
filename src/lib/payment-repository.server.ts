@@ -1,11 +1,12 @@
+import { serverEnv } from "./server-env.server";
 import { createClient } from "@supabase/supabase-js";
 import type { PaymentEvent } from "./payment-provider.server";
 
 // Internal service-role operation; not a createServerFn and not an HTTP route.
 // Only call from processVerifiedNotification after configuring a real adapter.
 export async function applyVerifiedPaymentEvent(event: PaymentEvent, resolvedUserId: string) {
-  const url = process.env["SUPABASE_URL"];
-  const key = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+  const url = serverEnv("SUPABASE_URL");
+  const key = serverEnv("SUPABASE_SERVICE_ROLE_KEY");
   if (!url || !key || new URL(url).protocol !== "https:")
     throw new Error("Payment persistence is not configured.");
   const client = createClient(url, key, {

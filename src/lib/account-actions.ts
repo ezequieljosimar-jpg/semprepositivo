@@ -48,8 +48,9 @@ export const getMyAccount = createServerFn({ method: "GET" }).handler(async () =
 
 export const accountConfiguration = createServerFn({ method: "GET" }).handler(async () => {
   const { accountsEnabled } = await import("./supabase.server");
+  const { serverEnv } = await import("./server-env.server");
   return {
-    enabled: accountsEnabled() && (process.env["PROGRESS_SESSION_SECRET"]?.length ?? 0) >= 32,
+    enabled: accountsEnabled() && (serverEnv("PROGRESS_SESSION_SECRET")?.length ?? 0) >= 32,
   };
 });
 export const recoverPassword = createServerFn({ method: "POST" })

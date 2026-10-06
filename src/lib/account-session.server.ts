@@ -1,3 +1,4 @@
+import { serverEnv } from "./server-env.server";
 import { useSession as createCookieSession, setResponseHeader } from "@tanstack/react-start/server";
 import { redirect } from "@tanstack/react-router";
 import { z } from "zod";
@@ -8,7 +9,7 @@ import { progressFrom, type Progress } from "./progression";
 type AuthData = { accessToken?: string; refreshToken?: string };
 async function authSession() {
   if (!accountsEnabled()) throw new Error("Accounts are not enabled.");
-  const password = process.env["PROGRESS_SESSION_SECRET"];
+  const password = serverEnv("PROGRESS_SESSION_SECRET");
   if (!password || password.length < 32) throw new Error("Configure the server session secret.");
   setResponseHeader("Cache-Control", "private, no-store");
   return createCookieSession<AuthData>({
@@ -26,10 +27,7 @@ async function authSession() {
 }
 
 export async function currentAccount() {
-  if (
-    !process.env["PROGRESS_SESSION_SECRET"] ||
-    process.env["PROGRESS_SESSION_SECRET"]!.length < 32
-  )
+  if (!serverEnv("PROGRESS_SESSION_SECRET") || serverEnv("PROGRESS_SESSION_SECRET")!.length < 32)
     return null;
   const session = await authSession();
   if (!session.data.accessToken) return null;
@@ -153,7 +151,7 @@ export async function signOutAccount() {
 }
 
 function accountRedirectUrl() {
-  const url = new URL(process.env["DEVOCIONAL_SITE_URL"] ?? "https://semprepositivo.lovable.app");
+  const url = new URL(serverEnv("DEVOCIONAL_SITE_URL") ?? "https://semprepositivo.lovable.app");
   if (
     url.protocol !== "https:" &&
     !(process.env["NODE_ENV"] !== "production" && url.hostname === "127.0.0.1")

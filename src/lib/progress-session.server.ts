@@ -1,3 +1,4 @@
+import { serverEnv } from "./server-env.server";
 import { useSession as createCookieSession, setResponseHeader } from "@tanstack/react-start/server";
 import { progressFrom, completeSequentially } from "./progression";
 import { accountsEnabled } from "./supabase.server";
@@ -9,7 +10,7 @@ export async function progressSession(publicView = false) {
     const { accountProgress } = await import("./account-session.server");
     return accountProgress(publicView);
   }
-  const password = process.env["PROGRESS_SESSION_SECRET"];
+  const password = serverEnv("PROGRESS_SESSION_SECRET");
   if (!password || password.length < 32) {
     throw new Error(
       "Configure PROGRESS_SESSION_SECRET with at least 32 characters in the server environment.",
