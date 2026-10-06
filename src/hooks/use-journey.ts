@@ -8,8 +8,9 @@ export function useJourney() {
   const { progress } = RootRoute.useRouteContext();
   const client = useQueryClient();
   const router = useRouter();
+  const queryKey = ["journey-progress", progress.ownerId ?? "anonymous"];
   const query = useQuery({
-    queryKey: ["journey-progress"],
+    queryKey,
     queryFn: () => getProgress(),
     initialData: progress,
     staleTime: 0,
@@ -20,9 +21,9 @@ export function useJourney() {
     done: Array.from({ length: value.completed }, (_, i) => i + 1),
     canRead: (n: number) => canRead(value, n),
     async complete(n: number) {
-      await client.cancelQueries({ queryKey: ["journey-progress"] });
+      await client.cancelQueries({ queryKey });
       const next: Progress = await completeDay({ data: n });
-      client.setQueryData(["journey-progress"], next);
+      client.setQueryData(queryKey, next);
       await router.invalidate();
       return next;
     },

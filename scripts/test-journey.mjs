@@ -8,12 +8,12 @@ const base = "http://127.0.0.1:3012";
 const secret = randomBytes(32).toString("hex");
 let server;
 let cookie = "";
-async function start() {
+async function start(mode = "anonymous") {
   server = spawn(
     process.execPath,
     ["node_modules/vite/bin/vite.js", "--host", "127.0.0.1", "--port", "3012", "--strictPort"],
     {
-      env: { ...process.env, PROGRESS_SESSION_SECRET: secret },
+      env: { ...process.env, PROGRESS_SESSION_SECRET: secret, DEVOCIONAL_ACCESS_MODE: mode },
       stdio: ["ignore", "pipe", "pipe"],
     },
   );
@@ -117,6 +117,15 @@ try {
   assert.ok((await rpc("readClosing")).content.length > 0);
   assert.equal((await rpc("readDay", 1)).day.n, 1);
   console.log("10. Day 90 completes the journey and opens the closing page.");
+  await stop();
+  cookie = "";
+  await start("accounts");
+  for (const path of ["/dia/1", "/dia/30", "/encerramento"]) {
+    const response = await fetch(base + path, { redirect: "manual" });
+    assert.ok([302, 303, 307, 308].includes(response.status));
+    assert.equal(new URL(response.headers.get("location"), base).pathname, "/login");
+  }
+  console.log("Accounts mode: direct reading URLs require login before any content is returned.");
 } finally {
   await stop();
 }

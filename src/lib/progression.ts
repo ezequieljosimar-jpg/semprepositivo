@@ -1,5 +1,5 @@
 export const TOTAL_DAYS = 90;
-export type Progress = { completed: number; currentDay: number | null };
+export type Progress = { completed: number; currentDay: number | null; ownerId?: string | null };
 
 export function progressFrom(completed: unknown): Progress {
   const count =

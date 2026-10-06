@@ -9,7 +9,7 @@ function dayNumber(input: unknown) {
 
 export const getProgress = createServerFn({ method: "GET" }).handler(async () => {
   const { progressSession } = await import("./progress-session.server");
-  return (await progressSession()).read();
+  return (await progressSession(true)).read();
 });
 
 export const completeDay = createServerFn({ method: "POST" })
@@ -23,7 +23,7 @@ export const readDay = createServerFn({ method: "GET" })
   .validator(dayNumber)
   .handler(async ({ data }) => {
     const { progressSession } = await import("./progress-session.server");
-    const progress = (await progressSession()).read();
+    const progress = await (await progressSession()).read();
     if (!canRead(progress, data)) return { day: null, phase: null, progress };
     // Never import the devotional into the client bundle or return future content.
     const { getDay, getPhase } = await import("./devocional.server");
@@ -33,7 +33,7 @@ export const readDay = createServerFn({ method: "GET" })
 
 export const readClosing = createServerFn({ method: "GET" }).handler(async () => {
   const { progressSession } = await import("./progress-session.server");
-  const progress = (await progressSession()).read();
+  const progress = await (await progressSession()).read();
   if (progress.completed !== 90) return { content: null, progress };
   const { closingPage } = await import("./devocional.server");
   return { content: closingPage, progress };

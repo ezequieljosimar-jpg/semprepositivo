@@ -1,9 +1,14 @@
 import { useSession as createCookieSession, setResponseHeader } from "@tanstack/react-start/server";
 import { progressFrom, completeSequentially } from "./progression";
+import { accountsEnabled } from "./supabase.server";
 
 // This adapter is the persistence boundary. A future account-backed repository
 // can replace it without changing the progression rules or page components.
-export async function progressSession() {
+export async function progressSession(publicView = false) {
+  if (accountsEnabled()) {
+    const { accountProgress } = await import("./account-session.server");
+    return accountProgress(publicView);
+  }
   const password = process.env["PROGRESS_SESSION_SECRET"];
   if (!password || password.length < 32) {
     throw new Error(
@@ -24,7 +29,7 @@ export async function progressSession() {
     },
   });
   return {
-    read: () => progressFrom(session.data.completed),
+    read: async () => progressFrom(session.data.completed),
     async complete(day: number) {
       const previous = progressFrom(session.data.completed);
       const next = completeSequentially(previous, day);

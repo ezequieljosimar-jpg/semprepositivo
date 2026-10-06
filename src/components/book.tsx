@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
+import { useJourney } from "@/hooks/use-journey";
 
 export function Footer({ page }: { page?: string | number }) {
   return (
@@ -52,14 +53,17 @@ export function SectionLabel({ children }: { children: ReactNode }) {
 const KEY = "sempre-positivo:";
 
 export function useStored(key: string) {
-  const [value, setValue] = useState("");
+  const { ownerId } = useJourney();
+  const scopedKey = ownerId === undefined ? KEY + key : `${KEY}${ownerId ?? "guest"}:${key}`;
+  const [saved, setSaved] = useState({ key: scopedKey, value: "" });
   useEffect(() => {
-    setValue(localStorage.getItem(KEY + key) ?? "");
-  }, [key]);
+    setSaved({ key: scopedKey, value: localStorage.getItem(scopedKey) ?? "" });
+  }, [scopedKey]);
   const update = (v: string) => {
-    setValue(v);
-    localStorage.setItem(KEY + key, v);
+    setSaved({ key: scopedKey, value: v });
+    localStorage.setItem(scopedKey, v);
   };
+  const value = saved.key === scopedKey ? saved.value : "";
   return [value, update] as const;
 }
 
