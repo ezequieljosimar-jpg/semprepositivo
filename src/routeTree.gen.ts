@@ -10,8 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AcessoNegadoRouteImport } from './routes/acesso-negado'
+import { Route as CadastroRouteImport } from './routes/cadastro'
+import { Route as CompraRouteImport } from './routes/compra'
+import { Route as DevocionalRouteImport } from './routes/devocional'
 import { Route as EncerramentoRouteImport } from './routes/encerramento'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as MinhaContaRouteImport } from './routes/minha-conta'
+import { Route as NovaSenhaRouteImport } from './routes/nova-senha'
+import { Route as PagamentoConfirmadoRouteImport } from './routes/pagamento-confirmado'
+import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as SumarioRouteImport } from './routes/sumario'
+import { Route as AuthRetornoRouteImport } from './routes/auth.retorno'
 import { Route as DiaNRouteImport } from './routes/dia.$n'
 import { Route as FaseNRouteImport } from './routes/fase.$n'
 
@@ -20,14 +30,64 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AcessoNegadoRoute = AcessoNegadoRouteImport.update({
+  id: '/acesso-negado',
+  path: '/acesso-negado',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroRoute = CadastroRouteImport.update({
+  id: '/cadastro',
+  path: '/cadastro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompraRoute = CompraRouteImport.update({
+  id: '/compra',
+  path: '/compra',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevocionalRoute = DevocionalRouteImport.update({
+  id: '/devocional',
+  path: '/devocional',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EncerramentoRoute = EncerramentoRouteImport.update({
   id: '/encerramento',
   path: '/encerramento',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MinhaContaRoute = MinhaContaRouteImport.update({
+  id: '/minha-conta',
+  path: '/minha-conta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NovaSenhaRoute = NovaSenhaRouteImport.update({
+  id: '/nova-senha',
+  path: '/nova-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PagamentoConfirmadoRoute = PagamentoConfirmadoRouteImport.update({
+  id: '/pagamento-confirmado',
+  path: '/pagamento-confirmado',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecuperarSenhaRoute = RecuperarSenhaRouteImport.update({
+  id: '/recuperar-senha',
+  path: '/recuperar-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SumarioRoute = SumarioRouteImport.update({
   id: '/sumario',
   path: '/sumario',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRetornoRoute = AuthRetornoRouteImport.update({
+  id: '/auth/retorno',
+  path: '/auth/retorno',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DiaNRoute = DiaNRouteImport.update({
@@ -43,38 +103,124 @@ const FaseNRoute = FaseNRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/acesso-negado': typeof AcessoNegadoRoute
+  '/cadastro': typeof CadastroRoute
+  '/compra': typeof CompraRoute
+  '/devocional': typeof DevocionalRoute
   '/encerramento': typeof EncerramentoRoute
+  '/login': typeof LoginRoute
+  '/minha-conta': typeof MinhaContaRoute
+  '/nova-senha': typeof NovaSenhaRoute
+  '/pagamento-confirmado': typeof PagamentoConfirmadoRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
   '/sumario': typeof SumarioRoute
+  '/auth/retorno': typeof AuthRetornoRoute
   '/dia/$n': typeof DiaNRoute
   '/fase/$n': typeof FaseNRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/acesso-negado': typeof AcessoNegadoRoute
+  '/cadastro': typeof CadastroRoute
+  '/compra': typeof CompraRoute
+  '/devocional': typeof DevocionalRoute
   '/encerramento': typeof EncerramentoRoute
+  '/login': typeof LoginRoute
+  '/minha-conta': typeof MinhaContaRoute
+  '/nova-senha': typeof NovaSenhaRoute
+  '/pagamento-confirmado': typeof PagamentoConfirmadoRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
   '/sumario': typeof SumarioRoute
+  '/auth/retorno': typeof AuthRetornoRoute
   '/dia/$n': typeof DiaNRoute
   '/fase/$n': typeof FaseNRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/acesso-negado': typeof AcessoNegadoRoute
+  '/cadastro': typeof CadastroRoute
+  '/compra': typeof CompraRoute
+  '/devocional': typeof DevocionalRoute
   '/encerramento': typeof EncerramentoRoute
+  '/login': typeof LoginRoute
+  '/minha-conta': typeof MinhaContaRoute
+  '/nova-senha': typeof NovaSenhaRoute
+  '/pagamento-confirmado': typeof PagamentoConfirmadoRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
   '/sumario': typeof SumarioRoute
+  '/auth/retorno': typeof AuthRetornoRoute
   '/dia/$n': typeof DiaNRoute
   '/fase/$n': typeof FaseNRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/encerramento' | '/sumario' | '/dia/$n' | '/fase/$n'
+  fullPaths:
+    | '/'
+    | '/acesso-negado'
+    | '/cadastro'
+    | '/compra'
+    | '/devocional'
+    | '/encerramento'
+    | '/login'
+    | '/minha-conta'
+    | '/nova-senha'
+    | '/pagamento-confirmado'
+    | '/recuperar-senha'
+    | '/sumario'
+    | '/auth/retorno'
+    | '/dia/$n'
+    | '/fase/$n'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/encerramento' | '/sumario' | '/dia/$n' | '/fase/$n'
-  id: '__root__' | '/' | '/encerramento' | '/sumario' | '/dia/$n' | '/fase/$n'
+  to:
+    | '/'
+    | '/acesso-negado'
+    | '/cadastro'
+    | '/compra'
+    | '/devocional'
+    | '/encerramento'
+    | '/login'
+    | '/minha-conta'
+    | '/nova-senha'
+    | '/pagamento-confirmado'
+    | '/recuperar-senha'
+    | '/sumario'
+    | '/auth/retorno'
+    | '/dia/$n'
+    | '/fase/$n'
+  id:
+    | '__root__'
+    | '/'
+    | '/acesso-negado'
+    | '/cadastro'
+    | '/compra'
+    | '/devocional'
+    | '/encerramento'
+    | '/login'
+    | '/minha-conta'
+    | '/nova-senha'
+    | '/pagamento-confirmado'
+    | '/recuperar-senha'
+    | '/sumario'
+    | '/auth/retorno'
+    | '/dia/$n'
+    | '/fase/$n'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AcessoNegadoRoute: typeof AcessoNegadoRoute
+  CadastroRoute: typeof CadastroRoute
+  CompraRoute: typeof CompraRoute
+  DevocionalRoute: typeof DevocionalRoute
   EncerramentoRoute: typeof EncerramentoRoute
+  LoginRoute: typeof LoginRoute
+  MinhaContaRoute: typeof MinhaContaRoute
+  NovaSenhaRoute: typeof NovaSenhaRoute
+  PagamentoConfirmadoRoute: typeof PagamentoConfirmadoRoute
+  RecuperarSenhaRoute: typeof RecuperarSenhaRoute
   SumarioRoute: typeof SumarioRoute
+  AuthRetornoRoute: typeof AuthRetornoRoute
   DiaNRoute: typeof DiaNRoute
   FaseNRoute: typeof FaseNRoute
 }
@@ -88,6 +234,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/acesso-negado': {
+      id: '/acesso-negado'
+      path: '/acesso-negado'
+      fullPath: '/acesso-negado'
+      preLoaderRoute: typeof AcessoNegadoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastro': {
+      id: '/cadastro'
+      path: '/cadastro'
+      fullPath: '/cadastro'
+      preLoaderRoute: typeof CadastroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compra': {
+      id: '/compra'
+      path: '/compra'
+      fullPath: '/compra'
+      preLoaderRoute: typeof CompraRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/devocional': {
+      id: '/devocional'
+      path: '/devocional'
+      fullPath: '/devocional'
+      preLoaderRoute: typeof DevocionalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/encerramento': {
       id: '/encerramento'
       path: '/encerramento'
@@ -95,11 +269,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EncerramentoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/minha-conta': {
+      id: '/minha-conta'
+      path: '/minha-conta'
+      fullPath: '/minha-conta'
+      preLoaderRoute: typeof MinhaContaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nova-senha': {
+      id: '/nova-senha'
+      path: '/nova-senha'
+      fullPath: '/nova-senha'
+      preLoaderRoute: typeof NovaSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pagamento-confirmado': {
+      id: '/pagamento-confirmado'
+      path: '/pagamento-confirmado'
+      fullPath: '/pagamento-confirmado'
+      preLoaderRoute: typeof PagamentoConfirmadoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recuperar-senha': {
+      id: '/recuperar-senha'
+      path: '/recuperar-senha'
+      fullPath: '/recuperar-senha'
+      preLoaderRoute: typeof RecuperarSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sumario': {
       id: '/sumario'
       path: '/sumario'
       fullPath: '/sumario'
       preLoaderRoute: typeof SumarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/retorno': {
+      id: '/auth/retorno'
+      path: '/auth/retorno'
+      fullPath: '/auth/retorno'
+      preLoaderRoute: typeof AuthRetornoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dia/$n': {
@@ -121,8 +337,18 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AcessoNegadoRoute: AcessoNegadoRoute,
+  CadastroRoute: CadastroRoute,
+  CompraRoute: CompraRoute,
+  DevocionalRoute: DevocionalRoute,
   EncerramentoRoute: EncerramentoRoute,
+  LoginRoute: LoginRoute,
+  MinhaContaRoute: MinhaContaRoute,
+  NovaSenhaRoute: NovaSenhaRoute,
+  PagamentoConfirmadoRoute: PagamentoConfirmadoRoute,
+  RecuperarSenhaRoute: RecuperarSenhaRoute,
   SumarioRoute: SumarioRoute,
+  AuthRetornoRoute: AuthRetornoRoute,
   DiaNRoute: DiaNRoute,
   FaseNRoute: FaseNRoute,
 }
