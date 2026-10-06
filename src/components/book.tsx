@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
+import { useJourney } from "@/hooks/use-journey";
 
 export function Footer({ page }: { page?: string | number }) {
   return (
@@ -21,6 +22,9 @@ export function TopBar({ children }: { children?: ReactNode }) {
         </Link>
         <div className="flex items-center gap-5">
           {children}
+          <Link to="/minha-conta" className="eyebrow text-muted-foreground hover:text-ember">
+            Conta
+          </Link>
           <Link to="/sumario" className="eyebrow text-muted-foreground hover:text-ember">
             Sumário
           </Link>
@@ -52,37 +56,31 @@ export function SectionLabel({ children }: { children: ReactNode }) {
 const KEY = "sempre-positivo:";
 
 export function useStored(key: string) {
-  const [value, setValue] = useState("");
+  const { ownerId } = useJourney();
+  const scopedKey = ownerId === undefined ? KEY + key : `${KEY}${ownerId ?? "guest"}:${key}`;
+  const [saved, setSaved] = useState({ key: scopedKey, value: "" });
   useEffect(() => {
-    setValue(localStorage.getItem(KEY + key) ?? "");
-  }, [key]);
+    setSaved({ key: scopedKey, value: localStorage.getItem(scopedKey) ?? "" });
+  }, [scopedKey]);
   const update = (v: string) => {
-    setValue(v);
-    localStorage.setItem(KEY + key, v);
+    setSaved({ key: scopedKey, value: v });
+    localStorage.setItem(scopedKey, v);
   };
+  const value = saved.key === scopedKey ? saved.value : "";
   return [value, update] as const;
 }
 
-export function useDone() {
-  const [done, setDone] = useState<number[]>([]);
-  useEffect(() => {
-    try {
-      setDone(JSON.parse(localStorage.getItem(KEY + "done") ?? "[]"));
-    } catch {
-      setDone([]);
-    }
-  }, []);
-  const toggle = (n: number) => {
-    setDone((prev) => {
-      const next = prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n];
-      localStorage.setItem(KEY + "done", JSON.stringify(next));
-      return next;
-    });
-  };
-  return { done, toggle };
-}
+export { useJourney as useDone } from "@/hooks/use-journey";
 
-export function WriteArea({ storageKey, lines, label }: { storageKey: string; lines: number; label?: string | undefined }) {
+export function WriteArea({
+  storageKey,
+  lines,
+  label,
+}: {
+  storageKey: string;
+  lines: number;
+  label?: string | undefined;
+}) {
   const [v, set] = useStored(storageKey);
   return (
     <div className="flex gap-3">
