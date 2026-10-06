@@ -82,7 +82,7 @@ export function useDone() {
   return { done, toggle };
 }
 
-export function WriteArea({ storageKey, lines, label }: { storageKey: string; lines: number; label?: string }) {
+export function WriteArea({ storageKey, lines, label }: { storageKey: string; lines: number; label?: string | undefined }) {
   const [v, set] = useStored(storageKey);
   return (
     <div className="flex gap-3">
