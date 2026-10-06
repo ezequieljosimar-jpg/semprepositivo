@@ -14,13 +14,180 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      devotional_access: {
+        Row: {
+          access_started_at: string | null
+          access_status: string
+          expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_started_at?: string | null
+          access_status?: string
+          expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_started_at?: string | null
+          access_status?: string
+          expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devotional_access_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "devotional_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      devotional_day_completions: {
+        Row: {
+          completed_at: string
+          day_number: number
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          day_number: number
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          day_number?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devotional_day_completions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "devotional_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      devotional_payment_events: {
+        Row: {
+          event_id: string
+          event_type: string
+          occurred_at: string
+          order_id: string
+          payment_provider: string
+          processed_at: string
+          user_id: string
+        }
+        Insert: {
+          event_id: string
+          event_type: string
+          occurred_at: string
+          order_id: string
+          payment_provider: string
+          processed_at?: string
+          user_id: string
+        }
+        Update: {
+          event_id?: string
+          event_type?: string
+          occurred_at?: string
+          order_id?: string
+          payment_provider?: string
+          processed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devotional_payment_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "devotional_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      devotional_payment_orders: {
+        Row: {
+          access_status: string
+          last_event_type: string
+          occurred_at: string
+          order_id: string
+          payment_provider: string
+          user_id: string
+        }
+        Insert: {
+          access_status: string
+          last_event_type: string
+          occurred_at: string
+          order_id: string
+          payment_provider: string
+          user_id: string
+        }
+        Update: {
+          access_status?: string
+          last_event_type?: string
+          occurred_at?: string
+          order_id?: string
+          payment_provider?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devotional_payment_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "devotional_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      devotional_profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          last_activity_at: string | null
+          name: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          last_activity_at?: string | null
+          name?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          last_activity_at?: string | null
+          name?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      apply_devotional_payment_event: {
+        Args: {
+          p_event_id: string
+          p_event_type: string
+          p_occurred_at: string
+          p_order_id: string
+          p_provider: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
+      assert_devotional_access: { Args: never; Returns: string }
+      complete_devotional_day: { Args: { p_day: number }; Returns: Json }
+      get_devotional_progress: { Args: never; Returns: Json }
     }
     Enums: {
       [_ in never]: never
