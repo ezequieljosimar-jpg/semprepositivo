@@ -1,3 +1,19 @@
+## Revisão da autenticação — 6 de outubro de 2026
+
+A causa do cadastro recusado era o provedor de e-mail desativado no Cloud. Ele agora está habilitado, com confirmação obrigatória. A conta real do proprietário foi confirmada e o banco registra login. Cadastro continua criando acesso `pending`; a conta do proprietário recebeu liberação manual para testes, sem registrar compra.
+
+Esta revisão mantém os componentes e as tabelas existentes. Melhora as mensagens de autenticação, exige nome no cadastro, explica corretamente o próximo passo quando a confirmação de e-mail está habilitada ou desabilitada, preserva o cookie criptografado HttpOnly e garante sua limpeza mesmo se a revogação remota falhar. A página de acesso pendente usa o botão “Quero acessar o devocional”, levando à página informativa existente, sem checkout.
+
+O botão “Continuar com Google” consulta `/auth/v1/settings` no servidor e só inicia `signInWithOAuth` se o provedor real estiver habilitado. O callback usa PKCE: o verificador fica no cookie criptografado HttpOnly, a troca do código e a validação de identidade acontecem no servidor. Não há Client Secret no frontend, credenciais inventadas ou concessão de acesso ao produto pelo OAuth. Se o provedor estiver desligado ou sua configuração não puder ser consultada, o botão explica o motivo e oferece e-mail/senha.
+
+**Google ainda desativado em produção.** Em More → Cloud → Users → Auth settings → Google, falta habilitar o método e selecionar a configuração. O Cloud oferece “Managed by Lovable”, que dispensa Client ID/Secret próprios. Se for escolhido “Your own credentials”, configurar no Google Cloud um cliente OAuth do tipo Web application e a tela de consentimento; salvar Client ID e Client Secret no painel seguro do provedor; cadastrar exatamente as URIs de retorno mostradas pelo painel no Google Cloud. No Auth, permitir também `https://semprepositivo.lovable.app/auth/retorno` como destino da aplicação. Não confundir essa URL de retorno da aplicação com o callback do provedor exibido no painel. Referências: https://docs.lovable.dev/features/google-auth e https://supabase.com/docs/guides/auth/social-login/auth-google.
+
+Validação desta revisão: testes unitários e PostgreSQL isolado, SDK real do Supabase com respostas de Auth isoladas e teste HTTP com cookies reais da aplicação (`node scripts/test-auth-session.mjs`). O teste HTTP cobre cadastro, confirmação obrigatória, login, atualização, persistência após reinício do processo, acesso pendente, acesso ativo, dia futuro bloqueado, saída e nova entrada. `node scripts/test-journey.mjs` cobre os dez cenários da progressão. O teste isolado não envia e-mails nem cria contas no serviço de produção. Cadastro, confirmação e login reais do proprietário foram corroborados no banco; Google real depende da ativação/configuração e não foi declarado validado.
+
+Para pagamentos: escolher o provedor e o produto; configurar credenciais no servidor; implementar o endpoint e o adaptador com verificação de assinatura, identificação do comprador e idempotência; mapear aprovação, reembolso, cancelamento e chargeback para o acesso. Nada disso é ativado nesta revisão.
+
+---
+
 ## Atualização: telas de conta e banco conectado
 
 O Supabase real do projeto foi habilitado e a migração foi aplicada em 6 de outubro de 2026 (UTC). As cinco tabelas têm RLS; a verificação em produção confirmou que authenticated não pode atualizar access_status, inserir conclusões diretamente ou executar o contrato de pagamentos.

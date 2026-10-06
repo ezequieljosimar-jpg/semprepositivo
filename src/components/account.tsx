@@ -1,7 +1,13 @@
 import { useState, type ReactNode, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { Footer, TopBar, SectionLabel } from "./book";
-import { signIn, signUp, recoverPassword, updatePassword } from "@/lib/account-actions";
+import {
+  signIn,
+  signUp,
+  recoverPassword,
+  updatePassword,
+  beginGoogleSignIn,
+} from "@/lib/account-actions";
 
 export const accountButton =
   "font-label inline-block border border-foreground px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] transition hover:bg-foreground hover:text-background disabled:opacity-50";
@@ -77,7 +83,7 @@ export function AccountForm({
         {signup && (
           <label className="block eyebrow">
             Nome
-            <input name="name" autoComplete="name" maxLength={120} className={input} />
+            <input name="name" required autoComplete="name" maxLength={120} className={input} />
           </label>
         )}
         {!passwordOnly && (
@@ -127,6 +133,30 @@ export function AccountForm({
           </p>
         )}
       </form>
+      {(kind === "login" || signup) && (
+        <button
+          type="button"
+          disabled={busy}
+          className={accountButton}
+          onClick={async () => {
+            setBusy(true);
+            setMessage("");
+            try {
+              const result = await beginGoogleSignIn();
+              if (result.ok && result.url) window.location.assign(result.url);
+              else setMessage(result.message);
+            } catch {
+              setMessage(
+                "Não foi possível iniciar a entrada com Google. Use e-mail e senha ou tente novamente.",
+              );
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          Continuar com Google
+        </button>
+      )}
       <div className="flex flex-wrap gap-5 border-t border-border pt-6 text-sm">
         {kind !== "login" && (
           <Link to="/login" className="text-ember">

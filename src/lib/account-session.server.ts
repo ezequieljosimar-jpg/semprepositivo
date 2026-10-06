@@ -3,11 +3,15 @@ import { serverEnv } from "./server-env.server";
 import { useSession as createCookieSession, setResponseHeader } from "@tanstack/react-start/server";
 import { redirect } from "@tanstack/react-router";
 import { z } from "zod";
-import { accountClient, accountsEnabled } from "./supabase.server";
+import { accountClient, accountsEnabled, googleProviderEnabled } from "./supabase.server";
 import { ACCOUNT_PATHS, accessDecision } from "./accounts";
 import { progressFrom, type Progress } from "./progression";
 
-type AuthData = { accessToken?: string; refreshToken?: string };
+type AuthData = {
+  accessToken?: string;
+  refreshToken?: string;
+  oauthStorage?: Record<string, string> | undefined;
+};
 async function authSession() {
   if (!accountsEnabled()) throw new Error("Accounts are not enabled.");
   const password = serverEnv("PROGRESS_SESSION_SECRET");
@@ -136,7 +140,7 @@ export async function signInAccount(email: string, password: string) {
 
 export async function registerAccount(email: string, password: string, name?: string) {
   await authSession();
-  const { error } = await accountClient().auth.signUp({
+  const { data, error } = await accountClient().auth.signUp({
     email,
     password,
     options: { data: { full_name: name ?? null }, emailRedirectTo: accountRedirectUrl() },
@@ -150,14 +154,22 @@ export async function registerAccount(email: string, password: string, name?: st
       ),
     };
   // Signing up never grants product access or bypasses email confirmation.
-  return { ok: true, message: "Confira seu e-mail para confirmar a conta." };
+  return {
+    ok: true,
+    message: data.session
+      ? "Conta criada. Entre com seu e-mail e senha. O acesso ao devocional depende de liberação."
+      : "Confira seu e-mail e confirme a conta antes de entrar. Verifique também a pasta de spam. O cadastro não libera o devocional automaticamente.",
+  };
 }
 
 export async function signOutAccount() {
   const session = await authSession();
-  if (session.data.accessToken)
-    await accountClient().auth.admin.signOut(session.data.accessToken, "local");
-  await session.clear();
+  try {
+    if (session.data.accessToken)
+      await accountClient().auth.admin.signOut(session.data.accessToken, "local");
+  } finally {
+    await session.clear();
+  }
   return { ok: true };
 }
 
@@ -230,4 +242,70 @@ export async function changeAccountPassword(password: string) {
       refreshToken: loaded.data.session.refresh_token,
     });
   return { ok: true, message: "Senha atualizada. Você já pode entrar." };
+}
+
+function oauthClient(session: Awaited<ReturnType<typeof authSession>>) {
+  const storage = { ...session.data.oauthStorage };
+  return accountClient(undefined, {
+    flowType: "pkce",
+    persistSession: true,
+    storage: {
+      getItem: async (key) => storage[key] ?? null,
+      setItem: async (key, value) => {
+        // Persist only PKCE state in the encrypted HttpOnly cookie. Auth tokens
+        // are saved explicitly after server-side verification below.
+        if (!key.endsWith("code-verifier")) return;
+        storage[key] = value;
+        await session.update({ oauthStorage: { ...storage } });
+      },
+      removeItem: async (key) => {
+        if (!key.endsWith("code-verifier")) return;
+        delete storage[key];
+        await session.update({ oauthStorage: { ...storage } });
+      },
+    },
+  });
+}
+
+export async function beginGoogleAccount() {
+  const enabled = await googleProviderEnabled();
+  if (enabled !== true)
+    return {
+      ok: false,
+      url: null,
+      message:
+        enabled === false
+          ? "A entrada com Google ainda não foi configurada. Por enquanto, entre ou crie sua conta com e-mail e senha."
+          : "Não foi possível verificar a entrada com Google agora. Use e-mail e senha ou tente novamente.",
+    };
+  const session = await authSession();
+  const { data, error } = await oauthClient(session).auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: accountRedirectUrl(), skipBrowserRedirect: true },
+  });
+  if (error || !data.url)
+    return {
+      ok: false,
+      url: null,
+      message: "Não foi possível iniciar a entrada com Google. Tente novamente.",
+    };
+  return { ok: true, url: data.url, message: "" };
+}
+
+export async function finishGoogleAccount(code: string) {
+  const session = await authSession();
+  if (!session.data.oauthStorage || Object.keys(session.data.oauthStorage).length === 0)
+    return { ok: false };
+  const client = oauthClient(session);
+  const { data, error } = await client.auth.exchangeCodeForSession(code);
+  if (error || !data.session) return { ok: false };
+  const checked = await client.auth.getUser(data.session.access_token);
+  if (checked.error || !checked.data.user?.email_confirmed_at) return { ok: false };
+  await session.update({
+    accessToken: data.session.access_token,
+    refreshToken: data.session.refresh_token,
+    oauthStorage: undefined,
+  });
+  // Auth may create the profile, but never activates product access.
+  return { ok: true };
 }

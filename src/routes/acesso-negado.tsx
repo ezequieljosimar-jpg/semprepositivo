@@ -27,7 +27,7 @@ function Page() {
         confirmado.
       </p>
       <Link to="/compra" className={accountButton}>
-        Sobre o acesso
+        Quero acessar o devocional
       </Link>
       <p>
         <Link to="/minha-conta" className="text-ember">

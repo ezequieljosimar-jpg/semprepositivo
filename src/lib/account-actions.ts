@@ -12,7 +12,7 @@ export const signIn = createServerFn({ method: "POST" })
     return signInAccount(data.email, data.password);
   });
 export const signUp = createServerFn({ method: "POST" })
-  .validator(credentials.extend({ name: z.string().trim().max(120).optional() }).strict())
+  .validator(credentials.extend({ name: z.string().trim().min(1).max(120) }).strict())
   .handler(async ({ data }) => {
     const { registerAccount } = await import("./account-session.server");
     return registerAccount(data.email, data.password, data.name);
@@ -77,4 +77,15 @@ export const updatePassword = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { changeAccountPassword } = await import("./account-session.server");
     return changeAccountPassword(data.password);
+  });
+
+export const beginGoogleSignIn = createServerFn({ method: "POST" }).handler(async () => {
+  const { beginGoogleAccount } = await import("./account-session.server");
+  return beginGoogleAccount();
+});
+export const finishGoogleSignIn = createServerFn({ method: "POST" })
+  .validator(z.object({ code: z.string().min(1).max(4096) }).strict())
+  .handler(async ({ data }) => {
+    const { finishGoogleAccount } = await import("./account-session.server");
+    return finishGoogleAccount(data.code);
   });

@@ -2,7 +2,11 @@ import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => {
   const session = {
-    data: {} as { accessToken?: string; refreshToken?: string },
+    data: {} as {
+      accessToken?: string;
+      refreshToken?: string;
+      oauthStorage?: Record<string, string>;
+    },
     update: vi.fn(),
     clear: vi.fn(),
   };
@@ -28,9 +32,11 @@ const mocks = vi.hoisted(() => {
       signInWithPassword: vi.fn(),
       admin: { signOut: vi.fn() },
       updateUser: vi.fn(),
+      signInWithOAuth: vi.fn(),
+      exchangeCodeForSession: vi.fn(),
     },
   };
-  return { session, access, result, client, eq };
+  return { session, access, result, client, eq, googleEnabled: vi.fn() };
 });
 vi.mock("@tanstack/react-start/server", () => ({
   useSession: async () => mocks.session,
@@ -39,6 +45,7 @@ vi.mock("@tanstack/react-start/server", () => ({
 vi.mock("@/lib/supabase.server", () => ({
   accountsEnabled: () => true,
   accountClient: () => mocks.client,
+  googleProviderEnabled: mocks.googleEnabled,
 }));
 import {
   accountProgress,
@@ -49,6 +56,8 @@ import {
   signOutAccount,
   currentAccount,
   changeAccountPassword,
+  beginGoogleAccount,
+  finishGoogleAccount,
 } from "@/lib/account-session.server";
 
 const A = "00000000-0000-4000-8000-000000000001";
@@ -174,7 +183,7 @@ it("reports disabled email signup without storing a session or granting access",
     "Teste local",
   );
   expect(result.ok).toBe(false);
-  expect(result.message).toContain("cadastro por e-mail está temporariamente indisponível");
+  expect(result.message).toContain("cadastro por e-mail não está habilitado");
   expect(mocks.session.update).not.toHaveBeenCalled();
   expect(mocks.client.rpc).not.toHaveBeenCalled();
 });
@@ -265,4 +274,68 @@ it("does not claim recovery succeeded when the provider is disabled", async () =
     error: { code: "email_provider_disabled" },
   });
   expect((await recoverAccount("isolated@example.invalid")).ok).toBe(false);
+});
+
+it("does not redirect to a provider that is disabled in real Auth settings", async () => {
+  mocks.googleEnabled.mockResolvedValue(false);
+  const result = await beginGoogleAccount();
+  expect(result.ok).toBe(false);
+  expect(result.url).toBeNull();
+  expect(result.message).toContain("ainda não foi configurada");
+  expect(mocks.client.auth.signInWithOAuth).not.toHaveBeenCalled();
+});
+it("does not pretend Google is configured when Auth settings are unreachable", async () => {
+  mocks.googleEnabled.mockResolvedValue(null);
+  expect((await beginGoogleAccount()).ok).toBe(false);
+  expect(mocks.client.auth.signInWithOAuth).not.toHaveBeenCalled();
+});
+it("starts the official Google flow only when Auth enables it", async () => {
+  mocks.googleEnabled.mockResolvedValue(true);
+  mocks.client.auth.signInWithOAuth.mockResolvedValue({
+    data: { url: "https://auth.example.invalid/authorize" },
+    error: null,
+  });
+  expect((await beginGoogleAccount()).ok).toBe(true);
+  expect(mocks.client.auth.signInWithOAuth).toHaveBeenCalledWith({
+    provider: "google",
+    options: {
+      redirectTo: "https://semprepositivo.lovable.app/auth/retorno",
+      skipBrowserRedirect: true,
+    },
+  });
+  expect(mocks.client.rpc).not.toHaveBeenCalled();
+});
+it("rejects OAuth callbacks from browsers that did not start the PKCE flow", async () => {
+  expect(await finishGoogleAccount("code-from-another-browser")).toEqual({ ok: false });
+  expect(mocks.client.auth.exchangeCodeForSession).not.toHaveBeenCalled();
+});
+it("verifies OAuth identity and saves the session without granting access", async () => {
+  mocks.session.data.oauthStorage = { "test-code-verifier": "test-only-verifier" };
+  mocks.client.auth.exchangeCodeForSession.mockResolvedValue({
+    data: { session: { access_token: "google-access", refresh_token: "google-refresh" } },
+    error: null,
+  });
+  expect(await finishGoogleAccount("test-only-code")).toEqual({ ok: true });
+  expect(mocks.client.auth.getUser).toHaveBeenCalledWith("google-access");
+  expect(mocks.session.update).toHaveBeenCalledWith({
+    accessToken: "google-access",
+    refreshToken: "google-refresh",
+    oauthStorage: undefined,
+  });
+  expect(mocks.client.rpc).not.toHaveBeenCalled();
+});
+it("explains signup accurately when confirmation is disabled", async () => {
+  mocks.client.auth.signUp.mockResolvedValue({
+    data: { session: { access_token: "test-only" } },
+    error: null,
+  });
+  const result = await registerAccount("isolated@example.invalid", "isolated-password", "Teste");
+  expect(result.message).toContain("Conta criada. Entre");
+  expect(result.message).not.toContain("confirme");
+  expect(mocks.session.update).not.toHaveBeenCalled();
+});
+it("always removes the browser session when remote logout fails", async () => {
+  mocks.client.auth.admin.signOut.mockRejectedValue(new Error("network"));
+  await expect(signOutAccount()).rejects.toThrow("network");
+  expect(mocks.session.clear).toHaveBeenCalled();
 });
