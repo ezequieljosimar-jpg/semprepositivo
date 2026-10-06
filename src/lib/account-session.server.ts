@@ -1,3 +1,4 @@
+import { authFailureMessage } from "./auth-error";
 import { serverEnv } from "./server-env.server";
 import { useSession as createCookieSession, setResponseHeader } from "@tanstack/react-start/server";
 import { redirect } from "@tanstack/react-router";
@@ -122,7 +123,10 @@ export async function signInAccount(email: string, password: string) {
   const session = await authSession();
   const { data, error } = await accountClient().auth.signInWithPassword({ email, password });
   if (error || !data.session)
-    return { ok: false, message: "Não foi possível entrar. Confira seus dados." };
+    return {
+      ok: false,
+      message: authFailureMessage(error ?? {}, "Não foi possível entrar. Confira seus dados."),
+    };
   await session.update({
     accessToken: data.session.access_token,
     refreshToken: data.session.refresh_token,
@@ -137,7 +141,14 @@ export async function registerAccount(email: string, password: string, name?: st
     password,
     options: { data: { full_name: name ?? null }, emailRedirectTo: accountRedirectUrl() },
   });
-  if (error) return { ok: false, message: "Não foi possível cadastrar a conta." };
+  if (error)
+    return {
+      ok: false,
+      message: authFailureMessage(
+        error,
+        "Não foi possível cadastrar a conta. Tente novamente em alguns instantes.",
+      ),
+    };
   // Signing up never grants product access or bypasses email confirmation.
   return { ok: true, message: "Confira seu e-mail para confirmar a conta." };
 }
@@ -162,7 +173,22 @@ function accountRedirectUrl() {
 
 export async function recoverAccount(email: string) {
   await authSession();
-  await accountClient().auth.resetPasswordForEmail(email, { redirectTo: accountRedirectUrl() });
+  const { error } = await accountClient().auth.resetPasswordForEmail(email, {
+    redirectTo: accountRedirectUrl(),
+  });
+  if (
+    error &&
+    [
+      "email_provider_disabled",
+      "signup_disabled",
+      "over_email_send_rate_limit",
+      "over_request_rate_limit",
+    ].includes(error.code ?? "")
+  )
+    return {
+      ok: false,
+      message: authFailureMessage(error, "Não foi possível enviar o link agora."),
+    };
   return {
     ok: true,
     message: "Se houver uma conta para este e-mail, você receberá um link para redefinir a senha.",

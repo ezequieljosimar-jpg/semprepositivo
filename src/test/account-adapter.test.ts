@@ -24,6 +24,10 @@ const mocks = vi.hoisted(() => {
       refreshSession: vi.fn(),
       setSession: vi.fn(),
       resetPasswordForEmail: vi.fn(),
+      signUp: vi.fn(),
+      signInWithPassword: vi.fn(),
+      admin: { signOut: vi.fn() },
+      updateUser: vi.fn(),
     },
   };
   return { session, access, result, client, eq };
@@ -40,6 +44,11 @@ import {
   accountProgress,
   acceptAccountSession,
   recoverAccount,
+  registerAccount,
+  signInAccount,
+  signOutAccount,
+  currentAccount,
+  changeAccountPassword,
 } from "@/lib/account-session.server";
 
 const A = "00000000-0000-4000-8000-000000000001";
@@ -152,4 +161,108 @@ it("keeps public navigation available before the secret is configured and denies
   });
   await expect(accountProgress().read()).rejects.toMatchObject({ options: { href: "/login" } });
   expect(mocks.client.rpc).not.toHaveBeenCalled();
+});
+
+it("reports disabled email signup without storing a session or granting access", async () => {
+  mocks.client.auth.signUp.mockResolvedValue({
+    data: {},
+    error: { code: "email_provider_disabled" },
+  });
+  const result = await registerAccount(
+    "isolated@example.invalid",
+    "isolated-password",
+    "Teste local",
+  );
+  expect(result.ok).toBe(false);
+  expect(result.message).toContain("cadastro por e-mail está temporariamente indisponível");
+  expect(mocks.session.update).not.toHaveBeenCalled();
+  expect(mocks.client.rpc).not.toHaveBeenCalled();
+});
+it("registers with the account confirmation callback and never grants product access", async () => {
+  mocks.client.auth.signUp.mockResolvedValue({
+    data: { user: { id: A }, session: null },
+    error: null,
+  });
+  expect(
+    (await registerAccount("isolated@example.invalid", "isolated-password", "Teste local")).ok,
+  ).toBe(true);
+  expect(mocks.client.auth.signUp).toHaveBeenCalledWith({
+    email: "isolated@example.invalid",
+    password: "isolated-password",
+    options: {
+      data: { full_name: "Teste local" },
+      emailRedirectTo: "https://semprepositivo.lovable.app/auth/retorno",
+    },
+  });
+  expect(mocks.session.update).not.toHaveBeenCalled();
+  expect(mocks.client.rpc).not.toHaveBeenCalled();
+});
+it("signs in an individual account and persists only its session tokens", async () => {
+  mocks.client.auth.signInWithPassword.mockResolvedValue({
+    data: { session: { access_token: "local-access", refresh_token: "local-refresh" } },
+    error: null,
+  });
+  expect(await signInAccount("isolated@example.invalid", "isolated-password")).toEqual({
+    ok: true,
+  });
+  expect(mocks.session.update).toHaveBeenCalledWith({
+    accessToken: "local-access",
+    refreshToken: "local-refresh",
+  });
+});
+it("does not establish a session after invalid credentials or unconfirmed email", async () => {
+  mocks.client.auth.signInWithPassword.mockResolvedValue({
+    data: { session: null },
+    error: { code: "email_not_confirmed" },
+  });
+  expect((await signInAccount("isolated@example.invalid", "wrong-password")).message).toContain(
+    "Confirme seu e-mail",
+  );
+  expect(mocks.session.update).not.toHaveBeenCalled();
+});
+it("clears the local account cookie and revokes its remote session on logout", async () => {
+  mocks.client.auth.admin.signOut.mockResolvedValue({ error: null });
+  expect(await signOutAccount()).toEqual({ ok: true });
+  expect(mocks.client.auth.admin.signOut).toHaveBeenCalledWith("isolated-test-token", "local");
+  expect(mocks.session.clear).toHaveBeenCalled();
+});
+it("refreshes expired tokens and verifies identity again before reading a profile", async () => {
+  mocks.session.data = { accessToken: "expired", refreshToken: "refresh" };
+  mocks.client.auth.getUser
+    .mockResolvedValueOnce({ data: { user: null }, error: { message: "expired" } })
+    .mockResolvedValueOnce({
+      data: { user: { id: A, email_confirmed_at: "2026-01-01" } },
+      error: null,
+    });
+  mocks.client.auth.refreshSession.mockResolvedValue({
+    data: { session: { access_token: "renewed", refresh_token: "new-refresh" } },
+    error: null,
+  });
+  expect((await currentAccount())?.user.id).toBe(A);
+  expect(mocks.client.auth.getUser).toHaveBeenLastCalledWith("renewed");
+  expect(mocks.eq).toHaveBeenCalledWith("user_id", A);
+});
+it("rejects a forged account callback even when setSession returns data", async () => {
+  mocks.client.auth.setSession.mockResolvedValue({
+    data: { session: { access_token: "forged", refresh_token: "forged-refresh" } },
+    error: null,
+  });
+  mocks.client.auth.getUser.mockResolvedValue({
+    data: { user: null },
+    error: { message: "invalid" },
+  });
+  expect(await acceptAccountSession("forged", "forged-refresh")).toEqual({ ok: false });
+  expect(mocks.session.update).not.toHaveBeenCalled();
+});
+it("requires an authenticated account before changing a password", async () => {
+  mocks.session.data = {};
+  expect((await changeAccountPassword("new-local-password")).ok).toBe(false);
+  expect(mocks.client.auth.updateUser).not.toHaveBeenCalled();
+});
+it("does not claim recovery succeeded when the provider is disabled", async () => {
+  mocks.client.auth.resetPasswordForEmail.mockResolvedValue({
+    data: null,
+    error: { code: "email_provider_disabled" },
+  });
+  expect((await recoverAccount("isolated@example.invalid")).ok).toBe(false);
 });
