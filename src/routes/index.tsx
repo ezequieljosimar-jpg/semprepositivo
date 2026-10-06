@@ -23,7 +23,7 @@ function Index() {
     <main>
       {/* CAPA */}
       <section className="relative min-h-screen overflow-hidden bg-ink text-ink-foreground">
-        <img src={cover} alt="" width={1024} height={1408} className="photo-bw absolute inset-0 h-full w-full object-cover opacity-80" />
+        <img src={cover} alt="" width={1920} height={1080} className="photo-bw absolute inset-0 h-full w-full object-cover object-[72%_center] sm:object-center opacity-80" />
         <div className="vignette absolute inset-0" />
         <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col justify-between px-6 py-10">
           <div className="flex items-center justify-between">
