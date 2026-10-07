@@ -26,4 +26,8 @@ describe("Kiwify webhook", () => {
     expect(parseKiwifyEvent(base("order_approved", "x"))).toMatchObject({ kind: "ignored" });
     expect(parseKiwifyEvent(base("pix_created"))).toMatchObject({ kind: "ignored" });
   });
+  it("ignores the official Kiwify test payload (fictitious product)", () => {
+    const test = { ...base("order_approved", "321c9121-3dca-4996-b363-8e59af6d9088"), Customer: { email: "johndoe@example.com" } };
+    expect(parseKiwifyEvent(test)).toEqual({ kind: "ignored", reason: "other product" });
+  });
 });
