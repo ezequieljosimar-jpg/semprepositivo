@@ -52,6 +52,8 @@ export async function currentAccount() {
   }
   if (checked.error || !checked.data.user || !checked.data.user.email_confirmed_at) return null;
   const client = accountClient(token);
+  // Link Kiwify purchases made with this confirmed email before the account existed.
+  await client.rpc("claim_devotional_purchases");
   const { data, error } = await client
     .from("devotional_access")
     .select("access_status, access_started_at, expires_at, updated_at")
