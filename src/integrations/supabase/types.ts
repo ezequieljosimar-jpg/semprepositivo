@@ -74,31 +74,34 @@ export type Database = {
       }
       devotional_payment_events: {
         Row: {
+          buyer_email: string | null
           event_id: string
           event_type: string
           occurred_at: string
           order_id: string
           payment_provider: string
           processed_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
+          buyer_email?: string | null
           event_id: string
           event_type: string
           occurred_at: string
           order_id: string
           payment_provider: string
           processed_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
+          buyer_email?: string | null
           event_id?: string
           event_type?: string
           occurred_at?: string
           order_id?: string
           payment_provider?: string
           processed_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -113,27 +116,30 @@ export type Database = {
       devotional_payment_orders: {
         Row: {
           access_status: string
+          buyer_email: string | null
           last_event_type: string
           occurred_at: string
           order_id: string
           payment_provider: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           access_status: string
+          buyer_email?: string | null
           last_event_type: string
           occurred_at: string
           order_id: string
           payment_provider: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           access_status?: string
+          buyer_email?: string | null
           last_event_type?: string
           occurred_at?: string
           order_id?: string
           payment_provider?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -186,8 +192,28 @@ export type Database = {
         Returns: boolean
       }
       assert_devotional_access: { Args: never; Returns: string }
+      claim_devotional_purchases: { Args: never; Returns: number }
       complete_devotional_day: { Args: { p_day: number }; Returns: Json }
       get_devotional_progress: { Args: never; Returns: Json }
+      link_devotional_purchases: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
+      record_devotional_purchase_event: {
+        Args: {
+          p_email: string
+          p_event_id: string
+          p_event_type: string
+          p_occurred_at: string
+          p_order_id: string
+          p_provider: string
+        }
+        Returns: string
+      }
+      refresh_devotional_access: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
