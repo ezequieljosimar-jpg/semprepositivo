@@ -6,12 +6,22 @@ function Page() {
     <AccountPage title="Uma jornada de 90 dias">
       <p>É Amargo, Mas Cura.</p>
       <p>
-        As informações de compra estarão disponíveis aqui quando a plataforma de pagamento estiver
-        conectada.
+        Use na compra o mesmo e-mail da sua conta do Devocional. Assim que o pagamento for
+        aprovado, seu acesso é liberado automaticamente.
       </p>
-      <Link to="/login" className={accountButton}>
-        Entrar na minha conta
-      </Link>
+      <a
+        href="https://pay.kiwify.com.br/VoRoa1v"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={accountButton}
+      >
+        Quero acessar o devocional
+      </a>
+      <p>
+        <Link to="/login" className="text-ember">
+          Já comprei · Entrar na minha conta
+        </Link>
+      </p>
     </AccountPage>
   );
 }
