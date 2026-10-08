@@ -1,42 +1,44 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ShareRemedy } from "@/components/share-remedy";
-
-const props = { remedy: ["Enfrente a verdade com fé.", "Dê hoje o primeiro passo para mudar."] };
+import { createRemedyCard } from "@/lib/remedy-card";
+vi.mock("@/lib/remedy-card", () => ({ createRemedyCard: vi.fn() }));
+const remedy = ["Enfrente a verdade com fé.", "Dê hoje o primeiro passo para mudar."];
+beforeEach(() => {
+  vi.mocked(createRemedyCard).mockResolvedValue(new File(["png"], "devocional-o-remedio.png", { type: "image/png" }));
+  URL.createObjectURL = vi.fn(() => "blob:card"); URL.revokeObjectURL = vi.fn();
+});
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
-
-describe("Remedy sharing", () => {
-  it("shares the complete remedy with a public link, without the protected day URL", async () => {
+async function prepare() {
+  render(<ShareRemedy remedy={remedy} />);
+  fireEvent.click(screen.getByRole("button", { name: "Compartilhar o remédio" }));
+  return screen.findByRole("button", { name: "Compartilhar imagem" });
+}
+describe("Remedy image sharing", () => {
+  it("prepares the complete remedy and shares only the PNG, without a long text caption", async () => {
     const share = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "share", { configurable: true, value: share });
-    render(<ShareRemedy {...props} />);
-    fireEvent.click(screen.getByRole("button", { name: "Compartilhar o remédio" }));
+    Object.defineProperty(navigator, "canShare", { configurable: true, value: () => true });
+    const button = await prepare();
+    expect(createRemedyCard).toHaveBeenCalledWith(remedy);
+    expect(share).not.toHaveBeenCalled();
+    fireEvent.click(button);
     await waitFor(() => expect(share).toHaveBeenCalledOnce());
-    const data = share.mock.calls[0]![0];
-    expect(data.text).toContain(props.remedy[0]);
-    expect(data.text).toContain(props.remedy[1]);
-    expect(data.text).toContain("https://semprepositivo.lovable.app");
-    expect(data.text).not.toContain("/dia/");
+    expect(share.mock.calls[0]![0].files[0].type).toBe("image/png");
+    expect(share.mock.calls[0]![0].text).toBeUndefined();
+    expect(share.mock.calls[0]![0].url).toBeUndefined();
   });
-
-  it("treats native cancellation quietly", async () => {
+  it("offers a download if file sharing is unsupported", async () => {
+    Object.defineProperty(navigator, "canShare", { configurable: true, value: () => false });
+    fireEvent.click(await prepare());
+    expect(screen.getByText(/Baixe a imagem e envie/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Baixar imagem" })).toHaveAttribute("download", "devocional-o-remedio.png");
+  });
+  it("keeps a cancelled native share quiet", async () => {
     Object.defineProperty(navigator, "share", { configurable: true, value: vi.fn().mockRejectedValue(new DOMException("Cancelled", "AbortError")) });
-    render(<ShareRemedy {...props} />);
-    fireEvent.click(screen.getByRole("button", { name: "Compartilhar o remédio" }));
-    await waitFor(() => expect(screen.getByRole("button", { name: "Compartilhar o remédio" })).not.toBeDisabled());
-    expect(screen.getByRole("status")).toBeEmptyDOMElement();
-    expect(screen.queryByText("Compartilhar pelo WhatsApp")).not.toBeInTheDocument();
-  });
-
-  it("offers copy and WhatsApp without native sharing, and manual copy on clipboard failure", async () => {
-    Object.defineProperty(navigator, "share", { configurable: true, value: undefined });
-    const writeText = vi.fn().mockRejectedValue(new Error("denied"));
-    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
-    render(<ShareRemedy {...props} />);
-    fireEvent.click(screen.getByRole("button", { name: "Compartilhar o remédio" }));
-    const link = screen.getByRole("link", { name: "Compartilhar pelo WhatsApp" });
-    expect(decodeURIComponent(link.getAttribute("href")!)).toContain(props.remedy[1]);
-    fireEvent.click(screen.getByRole("button", { name: "Copiar o remédio" }));
-    expect((await screen.findByRole("textbox", { name: "Remédio para copiar" }) as HTMLTextAreaElement).value).toContain(props.remedy[0]!);
+    Object.defineProperty(navigator, "canShare", { configurable: true, value: () => true });
+    const button = await prepare(); fireEvent.click(button);
+    await waitFor(() => expect(button).not.toBeDisabled());
+    expect(screen.queryByText(/Não foi possível compartilhar/)).not.toBeInTheDocument();
   });
 });

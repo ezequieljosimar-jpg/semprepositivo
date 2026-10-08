@@ -57,7 +57,7 @@ function Index() {
           alt=""
           width={1672}
           height={941}
-          className="absolute inset-x-0 top-0 h-[52vh] w-full object-cover object-[75%_center] md:inset-0 md:h-full md:object-center"
+          className="absolute inset-x-0 top-0 h-[64svh] w-full object-cover object-[75%_center] [mask-image:linear-gradient(to_bottom,black_55%,transparent_100%)] md:[mask-image:none] md:inset-0 md:h-full md:object-center"
         />
         <div className="vignette absolute inset-0" />
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent md:bg-gradient-to-r md:from-ink/80 md:via-ink/10 md:to-transparent" />
@@ -66,8 +66,8 @@ function Index() {
             <span className="eyebrow opacity-70">Devocional · 90 dias</span>
             <span className="eyebrow opacity-70">Sempre Positivo</span>
           </div>
-          <div className="animate-rise max-w-2xl pt-[42vh] pb-12 md:py-0">
-            <p className="eyebrow mb-10 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[#e88b70] md:text-ember">
+          <div className="animate-rise max-w-2xl pt-[27svh] pb-12 md:py-0">
+            <p className="eyebrow mb-10 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[#e88b70] [text-shadow:0_2px_12px_#000] md:text-ember md:[text-shadow:none]">
               <span className="text-[1.25rem] tracking-[0.2em] sm:text-[1.25rem] md:tracking-[0.32em]">Devocional</span>
               <span>Sempre Positivo</span>
             </p>
