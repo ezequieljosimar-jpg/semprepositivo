@@ -15,7 +15,7 @@ async function prepare() {
   return screen.findByRole("button", { name: "Compartilhar imagem" });
 }
 describe("Remedy image sharing", () => {
-  it("prepares the complete remedy and shares only the PNG, without a long text caption", async () => {
+  it("prepares the complete remedy and shares the PNG with a short caption and clickable public link", async () => {
     const share = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "share", { configurable: true, value: share });
     Object.defineProperty(navigator, "canShare", { configurable: true, value: () => true });
@@ -25,7 +25,8 @@ describe("Remedy image sharing", () => {
     fireEvent.click(button);
     await waitFor(() => expect(share).toHaveBeenCalledOnce());
     expect(share.mock.calls[0]![0].files[0].type).toBe("image/png");
-    expect(share.mock.calls[0]![0].text).toBeUndefined();
+    expect(share.mock.calls[0]![0].text).toContain("https://semprepositivo.lovable.app");
+    expect(share.mock.calls[0]![0].text).not.toContain(remedy[0]);
     expect(share.mock.calls[0]![0].url).toBeUndefined();
   });
   it("offers a download if file sharing is unsupported", async () => {
@@ -33,6 +34,14 @@ describe("Remedy image sharing", () => {
     fireEvent.click(await prepare());
     expect(screen.getByText(/Baixe a imagem e envie/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Baixar imagem" })).toHaveAttribute("download", "devocional-o-remedio.png");
+  });
+  it("copies the public link for destinations that omit image captions", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+    await prepare();
+    fireEvent.click(screen.getByRole("button", { name: "Copiar link do site" }));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith("https://semprepositivo.lovable.app"));
+    expect(screen.getByText(/Link copiado/)).toBeInTheDocument();
   });
   it("keeps a cancelled native share quiet", async () => {
     Object.defineProperty(navigator, "share", { configurable: true, value: vi.fn().mockRejectedValue(new DOMException("Cancelled", "AbortError")) });
