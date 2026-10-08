@@ -3,6 +3,7 @@ import { Footer, Rule, SectionLabel, TopBar, WriteArea, pad, useDone } from "@/c
 import { readDay } from "@/lib/journey";
 import { LockedDay, JourneyProgress, JourneyDayLink, NextDayWait } from "@/components/journey";
 import { useEffect, useState } from "react";
+import { ShareVerse } from "@/components/share-verse";
 
 export const Route = createFileRoute("/dia/$n")({
   loader: async ({ params }) => {
@@ -92,6 +93,7 @@ function Dia() {
             {day.reference}
           </figcaption>
         </figure>
+        <ShareVerse verse={day.verse} reference={day.reference} />
 
         <Rule className="my-16" />
 

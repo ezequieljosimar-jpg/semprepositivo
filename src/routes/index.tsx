@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import cover from "@/assets/cover.jpg";
+import cover from "@/assets/cover-cross-light.webp";
 import { Footer, Rule, SectionLabel } from "@/components/book";
 import { useJourney } from "@/hooks/use-journey";
 import { phases } from "@/lib/catalog";
@@ -55,19 +55,22 @@ function Index() {
         <img
           src={cover}
           alt=""
-          width={1920}
-          height={1088}
-          className="photo-bw absolute inset-0 h-full w-full object-cover object-[72%_center] opacity-80"
+          width={1672}
+          height={941}
+          className="absolute inset-x-0 top-0 h-[52vh] w-full object-cover object-[75%_center] md:inset-0 md:h-full md:object-center"
         />
         <div className="vignette absolute inset-0" />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent md:bg-gradient-to-r md:from-ink md:via-ink/30 md:to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent md:bg-gradient-to-r md:from-ink/80 md:via-ink/10 md:to-transparent" />
         <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col justify-between px-6 py-10">
           <div className="flex items-center justify-between">
             <span className="eyebrow opacity-70">Devocional · 90 dias</span>
             <span className="eyebrow opacity-70">Sempre Positivo</span>
           </div>
-          <div className="animate-rise max-w-2xl">
-            <p className="eyebrow mb-10 text-ember">Devocional Sempre Positivo</p>
+          <div className="animate-rise max-w-2xl pt-[28vh] pb-12 md:py-0">
+            <p className="eyebrow mb-10 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-ember">
+              <span className="text-[1.1rem] sm:text-[1.25rem]">Devocional</span>
+              <span>Sempre Positivo</span>
+            </p>
             <h1 className="font-display text-7xl uppercase leading-[0.95] sm:text-8xl md:text-[9rem]">
               É amargo,
               <br />

@@ -89,7 +89,10 @@ describe("Account server boundary (isolated Auth adapter)", () => {
     await expect(accountProgress().read()).rejects.toMatchObject({
       options: { href: "/acesso-negado" },
     });
-    expect(mocks.client.rpc).not.toHaveBeenCalled();
+    // Login may claim a previously unlinked purchase, but pending users still
+    // cannot read progress/content through the protected devotional RPC.
+    expect(mocks.client.rpc).toHaveBeenCalledWith("claim_devotional_purchases");
+    expect(mocks.client.rpc).not.toHaveBeenCalledWith("get_devotional_progress");
   });
   it("verifies identity with Auth and reads only the caller's database progress", async () => {
     expect(await accountProgress().read()).toEqual({
