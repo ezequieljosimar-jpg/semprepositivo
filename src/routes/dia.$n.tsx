@@ -3,7 +3,7 @@ import { Footer, Rule, SectionLabel, TopBar, WriteArea, pad, useDone } from "@/c
 import { readDay } from "@/lib/journey";
 import { LockedDay, JourneyProgress, JourneyDayLink, NextDayWait } from "@/components/journey";
 import { useEffect, useState } from "react";
-import { ShareVerse } from "@/components/share-verse";
+import { ShareRemedy } from "@/components/share-remedy";
 
 export const Route = createFileRoute("/dia/$n")({
   loader: async ({ params }) => {
@@ -93,7 +93,6 @@ function Dia() {
             {day.reference}
           </figcaption>
         </figure>
-        <ShareVerse verse={day.verse} reference={day.reference} />
 
         <Rule className="my-16" />
 
@@ -106,6 +105,7 @@ function Dia() {
           <SectionLabel>O remédio</SectionLabel>
           <Paras items={day.remedy} className="text-xl font-semibold leading-relaxed" />
         </section>
+        <ShareRemedy remedy={day.remedy} />
 
         {/* Tarefa */}
         <section className="page-sheet mt-20 px-6 py-10 md:px-10">

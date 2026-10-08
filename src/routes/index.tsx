@@ -66,9 +66,9 @@ function Index() {
             <span className="eyebrow opacity-70">Devocional · 90 dias</span>
             <span className="eyebrow opacity-70">Sempre Positivo</span>
           </div>
-          <div className="animate-rise max-w-2xl pt-[28vh] pb-12 md:py-0">
-            <p className="eyebrow mb-10 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-ember">
-              <span className="text-[1.1rem] sm:text-[1.25rem]">Devocional</span>
+          <div className="animate-rise max-w-2xl pt-[42vh] pb-12 md:py-0">
+            <p className="eyebrow mb-10 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[#e88b70] md:text-ember">
+              <span className="text-[1.25rem] tracking-[0.2em] sm:text-[1.25rem] md:tracking-[0.32em]">Devocional</span>
               <span>Sempre Positivo</span>
             </p>
             <h1 className="font-display text-7xl uppercase leading-[0.95] sm:text-8xl md:text-[9rem]">

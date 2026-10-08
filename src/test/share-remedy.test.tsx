@@ -1,29 +1,29 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ShareVerse } from "@/components/share-verse";
+import { ShareRemedy } from "@/components/share-remedy";
 
-const props = { verse: ["O Senhor é o meu pastor."], reference: "Salmos 23:1" };
+const props = { remedy: ["Enfrente a verdade com fé.", "Dê hoje o primeiro passo para mudar."] };
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
-describe("Verse sharing", () => {
-  it("shares the verse with a public link, without the protected day URL", async () => {
+describe("Remedy sharing", () => {
+  it("shares the complete remedy with a public link, without the protected day URL", async () => {
     const share = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "share", { configurable: true, value: share });
-    render(<ShareVerse {...props} />);
-    fireEvent.click(screen.getByRole("button", { name: "Compartilhar versículo" }));
+    render(<ShareRemedy {...props} />);
+    fireEvent.click(screen.getByRole("button", { name: "Compartilhar o remédio" }));
     await waitFor(() => expect(share).toHaveBeenCalledOnce());
     const data = share.mock.calls[0]![0];
-    expect(data.text).toContain(props.verse[0]);
-    expect(data.text).toContain(props.reference);
+    expect(data.text).toContain(props.remedy[0]);
+    expect(data.text).toContain(props.remedy[1]);
     expect(data.text).toContain("https://semprepositivo.lovable.app");
     expect(data.text).not.toContain("/dia/");
   });
 
   it("treats native cancellation quietly", async () => {
     Object.defineProperty(navigator, "share", { configurable: true, value: vi.fn().mockRejectedValue(new DOMException("Cancelled", "AbortError")) });
-    render(<ShareVerse {...props} />);
-    fireEvent.click(screen.getByRole("button", { name: "Compartilhar versículo" }));
-    await waitFor(() => expect(screen.getByRole("button", { name: "Compartilhar versículo" })).not.toBeDisabled());
+    render(<ShareRemedy {...props} />);
+    fireEvent.click(screen.getByRole("button", { name: "Compartilhar o remédio" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Compartilhar o remédio" })).not.toBeDisabled());
     expect(screen.getByRole("status")).toBeEmptyDOMElement();
     expect(screen.queryByText("Compartilhar pelo WhatsApp")).not.toBeInTheDocument();
   });
@@ -32,11 +32,11 @@ describe("Verse sharing", () => {
     Object.defineProperty(navigator, "share", { configurable: true, value: undefined });
     const writeText = vi.fn().mockRejectedValue(new Error("denied"));
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
-    render(<ShareVerse {...props} />);
-    fireEvent.click(screen.getByRole("button", { name: "Compartilhar versículo" }));
+    render(<ShareRemedy {...props} />);
+    fireEvent.click(screen.getByRole("button", { name: "Compartilhar o remédio" }));
     const link = screen.getByRole("link", { name: "Compartilhar pelo WhatsApp" });
-    expect(decodeURIComponent(link.getAttribute("href")!)).toContain(props.reference);
-    fireEvent.click(screen.getByRole("button", { name: "Copiar versículo" }));
-    expect((await screen.findByRole("textbox", { name: "Versículo para copiar" }) as HTMLTextAreaElement).value).toContain(props.verse[0]!);
+    expect(decodeURIComponent(link.getAttribute("href")!)).toContain(props.remedy[1]);
+    fireEvent.click(screen.getByRole("button", { name: "Copiar o remédio" }));
+    expect((await screen.findByRole("textbox", { name: "Remédio para copiar" }) as HTMLTextAreaElement).value).toContain(props.remedy[0]!);
   });
 });
