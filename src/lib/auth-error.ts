@@ -12,6 +12,17 @@ export function authFailureMessage(error: AuthFailure, fallback: string) {
     case "user_already_exists":
     case "email_exists":
       return "Este e-mail já possui uma conta. Entre ou use Esqueci minha senha.";
+    case "same_password":
+      return "A nova senha precisa ser diferente da senha atual.";
+    case "session_not_found":
+    case "session_expired":
+    case "bad_jwt":
+    case "refresh_token_not_found":
+    case "refresh_token_already_used":
+      return "O link ou a sessão de recuperação expirou. Solicite um novo link e use o e-mail mais recente.";
+    case "reauthentication_needed":
+    case "reauthentication_not_valid":
+      return "Confirme novamente sua identidade abrindo um novo link de recuperação.";
     case "weak_password":
       return "Escolha uma senha mais forte, com letras, números e símbolos.";
     case "email_address_invalid":

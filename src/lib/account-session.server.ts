@@ -228,22 +228,32 @@ export async function acceptAccountSession(accessToken: string, refreshToken: st
 }
 
 export async function changeAccountPassword(password: string) {
-  const account = await currentAccount();
-  if (!account) return { ok: false, message: "Abra novamente o link recebido por e-mail." };
+  // Password recovery depends on verified Auth identity, not a product purchase
+  // or profile read. Restore and verify one Auth client for the whole operation.
   const session = await authSession();
+  if (!session.data.accessToken || !session.data.refreshToken)
+    return { ok: false, message: "Solicite um novo link de recuperação e abra o e-mail mais recente." };
   const client = accountClient();
   const loaded = await client.auth.setSession({
-    access_token: session.data.accessToken!,
-    refresh_token: session.data.refreshToken!,
+    access_token: session.data.accessToken,
+    refresh_token: session.data.refreshToken,
   });
-  if (loaded.error) return { ok: false, message: "Sua sessão expirou. Entre novamente." };
+  if (loaded.error || !loaded.data.session)
+    return { ok: false, message: "O link ou a sessão de recuperação expirou. Solicite um novo link." };
+  const checked = await client.auth.getUser(loaded.data.session.access_token);
+  if (checked.error || !checked.data.user?.email_confirmed_at)
+    return { ok: false, message: "Não foi possível confirmar sua conta. Solicite um novo link de recuperação." };
+  // Persist rotated tokens even if the provider rejects the chosen password.
+  await session.update({
+    accessToken: loaded.data.session.access_token,
+    refreshToken: loaded.data.session.refresh_token,
+  });
   const result = await client.auth.updateUser({ password });
-  if (result.error) return { ok: false, message: "Não foi possível atualizar a senha." };
-  if (loaded.data.session)
-    await session.update({
-      accessToken: loaded.data.session.access_token,
-      refreshToken: loaded.data.session.refresh_token,
-    });
+  if (result.error) {
+    // Safe diagnostics only: never log the password, user or session tokens.
+    console.warn("password_update_rejected", { code: result.error.code ?? "unknown", status: result.error.status });
+    return { ok: false, message: authFailureMessage(result.error, "Não foi possível salvar a nova senha agora. Tente novamente; se continuar, solicite um novo link de recuperação.") };
+  }
   return { ok: true, message: "Senha atualizada. Você já pode entrar." };
 }
 

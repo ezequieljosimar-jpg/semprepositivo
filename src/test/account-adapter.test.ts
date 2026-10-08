@@ -347,3 +347,31 @@ it("always removes the browser session when remote logout fails", async () => {
   await expect(signOutAccount()).rejects.toThrow("network");
   expect(mocks.session.clear).toHaveBeenCalled();
 });
+
+ it("updates a verified recovery session without reading product access", async () => {
+  mocks.session.data = { accessToken: "recovery", refreshToken: "refresh" };
+  mocks.client.auth.setSession.mockResolvedValue({ data: { session: { access_token: "renewed", refresh_token: "rotated" } }, error: null });
+  mocks.client.auth.updateUser.mockResolvedValue({ data: { user: { id: A } }, error: null });
+  expect((await changeAccountPassword("new-test-password")).ok).toBe(true);
+  expect(mocks.client.auth.getUser).toHaveBeenCalledWith("renewed");
+  expect(mocks.session.update).toHaveBeenCalledWith({ accessToken: "renewed", refreshToken: "rotated" });
+  expect(mocks.client.rpc).not.toHaveBeenCalled();
+  expect(mocks.client.from).not.toHaveBeenCalled();
+ });
+ it("preserves rotated tokens and explains password-policy rejection", async () => {
+  vi.spyOn(console, "warn").mockImplementation(() => {});
+  mocks.session.data = { accessToken: "recovery", refreshToken: "refresh" };
+  mocks.client.auth.setSession.mockResolvedValue({ data: { session: { access_token: "renewed", refresh_token: "rotated" } }, error: null });
+  mocks.client.auth.updateUser.mockResolvedValue({ data: {}, error: { code: "weak_password", status: 422 } });
+  const result = await changeAccountPassword("new-test-password");
+  expect(result.ok).toBe(false);
+  expect(result.message).toContain("senha mais forte");
+  expect(mocks.session.update).toHaveBeenCalledWith({ accessToken: "renewed", refreshToken: "rotated" });
+ });
+ it("does not update a password when a restored session fails identity verification", async () => {
+  mocks.session.data = { accessToken: "forged", refreshToken: "refresh" };
+  mocks.client.auth.setSession.mockResolvedValue({ data: { session: { access_token: "forged", refresh_token: "refresh" } }, error: null });
+  mocks.client.auth.getUser.mockResolvedValue({ data: { user: null }, error: { code: "bad_jwt" } });
+  expect((await changeAccountPassword("new-test-password")).ok).toBe(false);
+  expect(mocks.client.auth.updateUser).not.toHaveBeenCalled();
+ });
