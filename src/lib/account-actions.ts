@@ -89,3 +89,8 @@ export const finishGoogleSignIn = createServerFn({ method: "POST" })
     const { finishGoogleAccount } = await import("./account-session.server");
     return finishGoogleAccount(data.code);
   });
+
+export const googleSignInAvailable = createServerFn({ method: "GET" }).handler(async () => {
+  const { googleProviderEnabled } = await import("./supabase.server");
+  return { enabled: await googleProviderEnabled() === true };
+});

@@ -6,7 +6,8 @@ import {
   signUp,
   recoverPassword,
   updatePassword,
-  beginGoogleSignIn,
+  googleSignInAvailable,
+  acceptSession,
 } from "@/lib/account-actions";
 
 export const accountButton =
@@ -142,9 +143,24 @@ export function AccountForm({
             setBusy(true);
             setMessage("");
             try {
-              const result = await beginGoogleSignIn();
-              if (result.ok && result.url) window.location.assign(result.url);
-              else setMessage(result.message);
+              const available = await googleSignInAvailable();
+              if (!available.enabled) {
+                setMessage("A entrada com Google não está disponível agora. Use e-mail e senha.");
+                return;
+              }
+              const { signInManagedGoogle } = await import("@/lib/managed-google");
+              const result = await signInManagedGoogle();
+              if (result.redirected) return;
+              if (result.error || !result.tokens) {
+                setMessage("A entrada com Google não foi concluída. Tente novamente.");
+                return;
+              }
+              const accepted = await acceptSession({ data: {
+                accessToken: result.tokens.access_token,
+                refreshToken: result.tokens.refresh_token,
+              } });
+              if (accepted.ok) window.location.replace("/devocional");
+              else setMessage("Não foi possível confirmar sua conta Google. Tente novamente.");
             } catch {
               setMessage(
                 "Não foi possível iniciar a entrada com Google. Use e-mail e senha ou tente novamente.",
