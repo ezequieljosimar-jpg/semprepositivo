@@ -1,10 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import cover from "@/assets/cover.jpg";
 import { Footer, Rule, SectionLabel } from "@/components/book";
 import { useJourney } from "@/hooks/use-journey";
 import { phases } from "@/lib/catalog";
+import { getMyAccount } from "@/lib/account-actions";
+import { accessDecision } from "@/lib/accounts";
+
+const homeAccountOptions = queryOptions({
+  queryKey: ["home-account"],
+  queryFn: () => getMyAccount(),
+  staleTime: 0,
+});
 
 export const Route = createFileRoute("/")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(homeAccountOptions),
   head: () => ({
     meta: [
       { title: "Devocional Sempre Positivo — É amargo, mas cura" },
@@ -14,6 +24,8 @@ export const Route = createFileRoute("/")({
           "Um devocional cristão de 90 dias. Enfrente a verdade. Receba a cura. Viva a mudança.",
       },
       { property: "og:title", content: "Devocional Sempre Positivo — É amargo, mas cura" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       {
         property: "og:description",
         content: "90 dias para enfrentar a verdade, receber a cura e viver a mudança.",
@@ -28,6 +40,14 @@ const steps = ["Ler", "Refletir", "Escrever", "Decidir", "Orar", "Agir"];
 
 function Index() {
   const { currentDay, completed } = useJourney();
+  const { data: account } = useSuspenseQuery(homeAccountOptions);
+  const hasAccess = accessDecision(
+    account?.profile.user_id ?? null,
+    account?.access?.access_status ?? null,
+    account?.access?.expires_at ?? null,
+  ) === "allowed";
+  const primaryButton =
+    "font-label border border-ember bg-ember px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-accent-foreground transition hover:brightness-110";
   return (
     <main>
       {/* CAPA */}
@@ -57,16 +77,23 @@ function Index() {
               Enfrente a verdade. Receba a cura. Viva a mudança.
             </p>
             <div className="mt-10 flex flex-wrap gap-4">
-              <Link
+              {hasAccess ? <Link
                 to="/devocional"
-                className="font-label border border-ember bg-ember px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-accent-foreground transition hover:brightness-110"
+                className={primaryButton}
               >
                 {completed === 0
                   ? "Começar o Dia 01"
                   : currentDay
                     ? `Continuar no Dia ${String(currentDay).padStart(2, "0")}`
                     : "Revisitar o Dia 90"}
-              </Link>
+              </Link> : <a
+                href="https://pay.kiwify.com.br/VoRoa1v"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={primaryButton}
+              >
+                Quero acessar o devocional
+              </a>}
               <Link
                 to="/sumario"
                 className="font-label border border-ink-foreground/40 px-6 py-3 text-sm uppercase tracking-[0.2em] transition hover:border-ink-foreground"
@@ -74,6 +101,13 @@ function Index() {
                 Sumário
               </Link>
             </div>
+            {!account && (
+              <p className="mt-5 text-sm">
+                <Link to="/login" className="text-ember">
+                  Já comprei · Entrar na minha conta
+                </Link>
+              </p>
+            )}
           </div>
           <p className="eyebrow opacity-60">
             90 dias para enfrentar a verdade, receber a cura e viver a mudança.
