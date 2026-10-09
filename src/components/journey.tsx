@@ -132,7 +132,7 @@ export function NextDayWait() {
   return (
     <span className="mt-2 block text-sm text-muted-foreground" role="status">
       {now === null
-        ? "O próximo dia será liberado 12 horas após a conclusão."
+        ? "O próximo dia será liberado 6 horas após a conclusão."
         : `Dia ${pad(progress.currentDay)} disponível em ${Math.floor(minutes / 60)}h ${minutes % 60}min. Você pode reler os dias concluídos.`}
     </span>
   );

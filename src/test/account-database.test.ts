@@ -46,6 +46,7 @@ beforeAll(async () => {
     await readFile("supabase/migrations/20261006230000_twelve_hour_progression.sql", "utf8"),
   );
   await db.exec(await readFile("supabase/migrations/20261009030000_day_one_invitations.sql", "utf8"));
+  await db.exec(await readFile("supabase/migrations/20261010000000_six_hour_progression.sql", "utf8"));
   await db.query(
     "insert into auth.users(id,email) values($1,'test-a@example.invalid'),($2,'test-b@example.invalid')",
     [A, B],
@@ -124,13 +125,13 @@ describe("Account database authorization and persistence", () => {
   it("6. starts a new authorized account at day one", async () => {
     expect(await progress()).toMatchObject({ completed: 0, currentDay: 1 });
   });
-  it("7. records day one and keeps day two locked for twelve hours", async () => {
+  it("7. records day one and keeps day two locked for six hours", async () => {
     const first = await complete(1);
     expect(first).toMatchObject({ completed: 1, currentDay: 2 });
     expect(first.nextAvailableAt).toBeTruthy();
     expect(canRead(first, 1)).toBe(true);
     expect(canRead(first, 2)).toBe(false);
-    await expect(complete(2)).rejects.toThrow("Wait 12 hours");
+    await expect(complete(2)).rejects.toThrow("Wait 6 hours");
     expect(await complete(1)).toEqual(first);
     const rows = (
       await db.query<{ day_number: number; completed_at: Date }>(
@@ -159,19 +160,19 @@ describe("Account database authorization and persistence", () => {
     await asUser(A);
     expect(await progress()).toMatchObject({ completed: 1, currentDay: 2 });
   }, 30000);
-  it("11. uses the database clock and unlocks only after twelve hours", async () => {
+  it("11. uses the database clock and unlocks only after six hours", async () => {
     await db.exec("reset role");
     await db.query(
-      "update public.devotional_day_completions set completed_at = clock_timestamp() - interval '11 hours 59 minutes' where user_id=$1",
+      "update public.devotional_day_completions set completed_at = clock_timestamp() - interval '5 hours 59 minutes' where user_id=$1",
       [A],
     );
     await asUser(A);
     expect(canRead(await progress(), 2)).toBe(false);
-    await expect(complete(2)).rejects.toThrow("Wait 12 hours");
+    await expect(complete(2)).rejects.toThrow("Wait 6 hours");
     await db.exec("reset role");
     await db.exec("reset role");
     await db.query(
-      "update public.devotional_day_completions set completed_at = clock_timestamp() - interval '12 hours' where user_id=$1",
+      "update public.devotional_day_completions set completed_at = clock_timestamp() - interval '6 hours' where user_id=$1",
       [A],
     );
     await asUser(A);
@@ -186,10 +187,10 @@ describe("Account database authorization and persistence", () => {
     expect(await complete(1)).toMatchObject({ completed: 1, currentDay: 2 });
     expect(await complete(2)).toMatchObject({ completed: 2, currentDay: 3 });
     expect(canRead(await progress(), 3)).toBe(false);
-    await expect(complete(3)).rejects.toThrow("Wait 12 hours");
+    await expect(complete(3)).rejects.toThrow("Wait 6 hours");
     await expect(
       db.query(
-        "update public.devotional_day_completions set completed_at = now() - interval '12 hours' where user_id=$1",
+        "update public.devotional_day_completions set completed_at = now() - interval '6 hours' where user_id=$1",
         [A],
       ),
     ).rejects.toThrow();
@@ -296,7 +297,7 @@ describe("Invitation-only day one sample (isolated database)", () => {
     await expect(db.query("update public.devotional_access set access_status='active' where user_id=$1",[C])).rejects.toThrow();
     expect((await db.query<{access_status:string}>("select access_status from public.devotional_access")).rows[0]!.access_status).toBe("pending");
   });
-  it("permits only day one and permanently caps sample reads even after twelve hours", async () => {
+  it("permits only day one and permanently caps sample reads even after six hours", async () => {
     expect(await progress()).toMatchObject({completed:0,ownerId:C,maxReadableDay:1});
     const first=await complete(1);
     expect(first).toMatchObject({completed:1,currentDay:2,maxReadableDay:1});
@@ -317,16 +318,16 @@ describe("Invitation-only day one sample (isolated database)", () => {
     expect(await redeem("DISABLED")).toBe("invalid");
     expect(await redeem("EXPIRED")).toBe("invalid");
   });
-  it("upgrades on purchase without losing day one progress or bypassing the twelve hour wait", async () => {
+  it("upgrades on purchase without losing day one progress or bypassing the six hour wait", async () => {
     await db.exec("reset role; set role service_role");
     await db.query("select public.apply_devotional_payment_event('isolated','sample-approved','sample-order',$1,'purchase.approved',now())",[C]);
     await asUser(C);
     const paid=await progress();
     expect(paid).toMatchObject({completed:1,currentDay:2,ownerId:C});
     expect(paid.maxReadableDay).toBeUndefined();
-    await expect(complete(2)).rejects.toThrow("Wait 12 hours");
+    await expect(complete(2)).rejects.toThrow("Wait 6 hours");
     await db.exec("reset role");
-    await db.query("update public.devotional_day_completions set completed_at=clock_timestamp()-interval '12 hours' where user_id=$1 and day_number=1",[C]);
+    await db.query("update public.devotional_day_completions set completed_at=clock_timestamp()-interval '6 hours' where user_id=$1 and day_number=1",[C]);
     await asUser(C);
     expect(canRead(await progress(),2)).toBe(true);
     expect(await complete(2)).toMatchObject({completed:2,currentDay:3});

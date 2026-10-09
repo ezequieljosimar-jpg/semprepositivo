@@ -1,5 +1,5 @@
 export const TOTAL_DAYS = 90;
-export const DAY_WAIT_MS = 12 * 60 * 60 * 1000;
+export const DAY_WAIT_MS = 6 * 60 * 60 * 1000;
 export type Progress = {
   maxReadableDay?: 1;
   completed: number;
