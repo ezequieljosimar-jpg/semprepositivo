@@ -13,3 +13,14 @@ describe("Access decisions", () => {
     expect(accessDecision("account", "active", "invalid")).toBe("denied");
   });
 });
+
+import { devotionalDecision } from "@/lib/accounts";
+import { canRead } from "@/lib/progression";
+it("separates invited sample access from paid entitlement", () => {
+  expect(accessDecision("account", "pending", null)).toBe("denied");
+  expect(devotionalDecision("account", "pending", null, "2026-10-09T00:00:00Z")).toBe("allowed");
+  expect(devotionalDecision("account", "pending", null)).toBe("denied");
+  expect(devotionalDecision("account", "cancelled", null, "2026-10-09T00:00:00Z")).toBe("denied");
+  expect(devotionalDecision(null, "pending", null, "2026-10-09T00:00:00Z")).toBe("login");
+  expect(canRead({completed:1,currentDay:2,maxReadableDay:1,nextAvailableAt:"2000-01-01T00:00:00Z"},2)).toBe(false);
+});

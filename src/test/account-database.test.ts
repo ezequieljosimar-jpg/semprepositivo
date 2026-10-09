@@ -34,7 +34,7 @@ beforeAll(async () => {
   await db.exec(`
     create role anon; create role authenticated; create role service_role bypassrls;
     create schema auth;
-    create table auth.users(id uuid primary key, email text, created_at timestamptz default now(), raw_user_meta_data jsonb default '{}');
+    create table auth.users(id uuid primary key, email text, email_confirmed_at timestamptz, created_at timestamptz default now(), raw_user_meta_data jsonb default '{}');
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
     revoke create on schema public from public;
     grant usage on schema public, auth to anon, authenticated, service_role;
@@ -45,6 +45,7 @@ beforeAll(async () => {
   await db.exec(
     await readFile("supabase/migrations/20261006230000_twelve_hour_progression.sql", "utf8"),
   );
+  await db.exec(await readFile("supabase/migrations/20261009030000_day_one_invitations.sql", "utf8"));
   await db.query(
     "insert into auth.users(id,email) values($1,'test-a@example.invalid'),($2,'test-b@example.invalid')",
     [A, B],
@@ -267,5 +268,75 @@ describe("Account database authorization and persistence", () => {
       (await db.query("select * from public.devotional_day_completions where user_id=$1", [A]))
         .rows,
     ).toHaveLength(2);
+  });
+});
+
+const C = "00000000-0000-4000-8000-000000000003";
+const D = "00000000-0000-4000-8000-000000000004";
+const E = "00000000-0000-4000-8000-000000000005";
+async function redeem(code: string) {
+  return (await db.query<{value: string}>("select public.redeem_devotional_sample($1) as value", [code])).rows[0]!.value;
+}
+describe("Invitation-only day one sample (isolated database)", () => {
+  it("requires a valid invitation, a signed-in identity and confirmed email", async () => {
+    await db.exec("reset role");
+    await db.query("insert into auth.users(id,email,email_confirmed_at) values($1,'sample@example.invalid',now()),($2,'unconfirmed@example.invalid',null),($3,'no-invite@example.invalid',now())",[C,D,E]);
+    await db.exec("insert into public.devotional_sample_invites(code_hash,label,max_uses) values(encode(sha256(convert_to('LOCAL-TEST-INVITE','UTF8')),'hex'),'Isolated test',1)");
+    await asUser(null); await expect(redeem("LOCAL-TEST-INVITE")).rejects.toThrow();
+    await asUser(D); await expect(redeem("LOCAL-TEST-INVITE")).rejects.toThrow("Confirmed email required");
+    await asUser(C);
+    expect(await redeem("wrong-code")).toBe("invalid");
+    await expect(progress()).rejects.toThrow("Product access required");
+    expect(await redeem(" local-test-invite ")).toBe("granted");
+    expect(await redeem("LOCAL-TEST-INVITE")).toBe("already_granted");
+  });
+  it("cannot read invitation hashes or self-grant sample/paid access", async () => {
+    await expect(db.query("select * from public.devotional_sample_invites")).rejects.toThrow();
+    await expect(db.query("update public.devotional_access set sample_granted_at=now() where user_id=$1",[C])).rejects.toThrow();
+    await expect(db.query("update public.devotional_access set access_status='active' where user_id=$1",[C])).rejects.toThrow();
+    expect((await db.query<{access_status:string}>("select access_status from public.devotional_access")).rows[0]!.access_status).toBe("pending");
+  });
+  it("permits only day one and permanently caps sample reads even after twelve hours", async () => {
+    expect(await progress()).toMatchObject({completed:0,ownerId:C,maxReadableDay:1});
+    const first=await complete(1);
+    expect(first).toMatchObject({completed:1,currentDay:2,maxReadableDay:1});
+    expect(canRead(first,1)).toBe(true);
+    expect(canRead(first,2,Date.now()+24*60*60*1000)).toBe(false);
+    await expect(complete(2)).rejects.toThrow("Sample includes day one only");
+    await expect(complete(90)).rejects.toThrow();
+    expect(await complete(1)).toEqual(first);
+  });
+  it("does not activate other accounts or reuse a fully claimed invitation", async () => {
+    await asUser(E);
+    expect(await redeem("LOCAL-TEST-INVITE")).toBe("invalid");
+    await expect(progress()).rejects.toThrow("Product access required");
+    await db.exec("reset role");
+    expect((await db.query<{used_count:number}>("select used_count from public.devotional_sample_invites")).rows[0]!.used_count).toBe(1);
+    await db.exec("insert into public.devotional_sample_invites(code_hash,label,enabled,expires_at) values(encode(sha256(convert_to('DISABLED','UTF8')),'hex'),'Disabled',false,null),(encode(sha256(convert_to('EXPIRED','UTF8')),'hex'),'Expired',true,now()-interval '1 day')");
+    await asUser(E);
+    expect(await redeem("DISABLED")).toBe("invalid");
+    expect(await redeem("EXPIRED")).toBe("invalid");
+  });
+  it("upgrades on purchase without losing day one progress or bypassing the twelve hour wait", async () => {
+    await db.exec("reset role; set role service_role");
+    await db.query("select public.apply_devotional_payment_event('isolated','sample-approved','sample-order',$1,'purchase.approved',now())",[C]);
+    await asUser(C);
+    const paid=await progress();
+    expect(paid).toMatchObject({completed:1,currentDay:2,ownerId:C});
+    expect(paid.maxReadableDay).toBeUndefined();
+    await expect(complete(2)).rejects.toThrow("Wait 12 hours");
+    await db.exec("reset role");
+    await db.query("update public.devotional_day_completions set completed_at=clock_timestamp()-interval '12 hours' where user_id=$1 and day_number=1",[C]);
+    await asUser(C);
+    expect(canRead(await progress(),2)).toBe(true);
+    expect(await complete(2)).toMatchObject({completed:2,currentDay:3});
+  });
+  it("does not restore cancelled access through an old sample or another invitation", async () => {
+    await db.exec("reset role; set role service_role");
+    await db.query("select public.apply_devotional_payment_event('isolated','sample-refunded','sample-order',$1,'purchase.refunded',now()+interval '1 minute')",[C]);
+    await asUser(C);
+    await expect(progress()).rejects.toThrow();
+    expect(await redeem("LOCAL-TEST-INVITE")).toBe("unavailable");
+    await expect(complete(1)).rejects.toThrow();
   });
 });

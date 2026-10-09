@@ -64,7 +64,7 @@ export function JourneyProgress() {
     <div className="mt-6">
       <p className="font-label text-sm text-muted-foreground">
         {completed} de 90 dias concluídos
-        {currentDay
+        {progress.maxReadableDay === 1 ? " · Amostra: Dia 01" : currentDay
           ? ` · ${waitingForNextDay(progress) ? "Próximo dia" : "Seu dia atual"}: ${pad(currentDay)}`
           : " · Jornada completa"}
       </p>
@@ -86,7 +86,7 @@ export function JourneyProgress() {
 export function LockedDay() {
   const progress = useJourney();
   const { currentDay } = progress;
-  const returnDay = waitingForNextDay(progress) ? progress.completed : (currentDay ?? 90);
+  const returnDay = progress.maxReadableDay === 1 ? 1 : waitingForNextDay(progress) ? progress.completed : (currentDay ?? 90);
   return (
     <>
       <TopBar />
@@ -119,6 +119,12 @@ export function NextDayWait() {
     const timer = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(timer);
   }, []);
+  if (progress.maxReadableDay === 1) return (
+    <span className="mt-2 block text-sm text-muted-foreground" role="status">
+      Sua amostra inclui somente o Dia 1. Para continuar a jornada, adquira o devocional.
+      <Link to="/compra" className="mt-3 block text-ember">Quero acessar o devocional</Link>
+    </span>
+  );
   if (!progress.nextAvailableAt || !progress.currentDay) return null;
   const remaining = Date.parse(progress.nextAvailableAt) - (now ?? Date.now());
   if (remaining <= 0) return null;

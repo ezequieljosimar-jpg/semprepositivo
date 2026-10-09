@@ -1,6 +1,7 @@
 export const TOTAL_DAYS = 90;
 export const DAY_WAIT_MS = 12 * 60 * 60 * 1000;
 export type Progress = {
+  maxReadableDay?: 1;
   completed: number;
   currentDay: number | null;
   ownerId?: string | null;
@@ -35,6 +36,7 @@ export function canRead(progress: Progress, day: number, now = Date.now()) {
     Number.isInteger(day) &&
     day >= 1 &&
     day <= TOTAL_DAYS &&
+    day <= (progress.maxReadableDay ?? TOTAL_DAYS) &&
     (day <= progress.completed ||
       (day === progress.currentDay && !waitingForNextDay(progress, now)))
   );

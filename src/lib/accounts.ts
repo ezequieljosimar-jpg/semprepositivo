@@ -9,6 +9,14 @@ export const ACCOUNT_PATHS = {
   confirmed: "/pagamento-confirmado",
 } as const;
 
+// Product purchase checks continue using accessDecision. This helper also permits
+// the separately granted sample; the server/database still cap it to day one.
+export function devotionalDecision(userId: string | null, status: AccessStatus | null,
+  expiresAt: string | null, sampleGrantedAt?: string | null) {
+  const paid = accessDecision(userId, status, expiresAt);
+  return paid === "denied" && status === "pending" && !!sampleGrantedAt ? "allowed" as const : paid;
+}
+
 export function accessDecision(
   userId: string | null,
   status: AccessStatus | null,

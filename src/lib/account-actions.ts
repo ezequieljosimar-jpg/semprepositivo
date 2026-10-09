@@ -41,6 +41,7 @@ export const getMyAccount = createServerFn({ method: "GET" }).handler(async () =
   if (completionError) throw new Error("Could not load your progress.");
   return {
     profile: data,
+    invitationMessage: account.invitationMessage,
     access: account.access,
     progress: { ...progressFrom(completions.length), ownerId: account.user.id, completions },
   };
@@ -100,4 +101,14 @@ export const getLandingAccount = createServerFn({ method: "GET" }).handler(async
   if (!accountsEnabled()) return null;
   const { landingAccountState } = await import("./account-session.server");
   return landingAccountState();
+});
+
+const invitationCode = z.object({ code: z.string().trim().max(80) }).strict();
+export const stageSampleCode = createServerFn({ method: "POST" }).validator(invitationCode).handler(async ({ data }) => {
+  const { stageSampleInvitation } = await import("./account-session.server");
+  return stageSampleInvitation(data.code);
+});
+export const redeemSampleCode = createServerFn({ method: "POST" }).validator(invitationCode.extend({ code: z.string().trim().min(1).max(80) })).handler(async ({ data }) => {
+  const { redeemSampleInvitation } = await import("./account-session.server");
+  return redeemSampleInvitation(data.code);
 });

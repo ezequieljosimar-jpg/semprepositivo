@@ -4,7 +4,7 @@ import cover from "@/assets/cover-cross-light.webp";
 import { Footer, Rule, SectionLabel } from "@/components/book";
 import { phases } from "@/lib/catalog";
 import { getLandingAccount } from "@/lib/account-actions";
-import { accessDecision } from "@/lib/accounts";
+import { devotionalDecision } from "@/lib/accounts";
 
 const homeAccountOptions = queryOptions({
   queryKey: ["home-account"],
@@ -39,12 +39,13 @@ const steps = ["Ler", "Refletir", "Escrever", "Decidir", "Orar", "Agir"];
 
 function Index() {
   const { data: account } = useQuery(homeAccountOptions);
-  const currentDay = account?.progress.currentDay;
+  const currentDay = account?.progress.maxReadableDay === 1 ? 1 : account?.progress.currentDay;
   const completed = account?.progress.completed ?? 0;
-  const hasAccess = accessDecision(
+  const hasAccess = devotionalDecision(
     account?.userId ?? null,
     account?.access?.access_status ?? null,
     account?.access?.expires_at ?? null,
+        account?.access?.sample_granted_at,
   ) === "allowed";
   const primaryButton =
     "font-label border border-ember bg-ember px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-accent-foreground transition hover:brightness-110";

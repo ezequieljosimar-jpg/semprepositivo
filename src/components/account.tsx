@@ -8,6 +8,8 @@ import {
   updatePassword,
   googleSignInAvailable,
   acceptSession,
+  stageSampleCode,
+  redeemSampleCode,
 } from "@/lib/account-actions";
 
 export const accountButton =
@@ -32,6 +34,7 @@ export function AccountForm({
   kind: "login" | "signup" | "recover" | "password";
   enabled: boolean;
 }) {
+  const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [finished, setFinished] = useState(false);
@@ -55,6 +58,7 @@ export function AccountForm({
     try {
       const email = String(values.get("email") ?? "").trim();
       const password = String(values.get("password") ?? "");
+      if (signup || kind === "login") await stageSampleCode({ data: { code } });
       const result = recover
         ? await recoverPassword({ data: { email } })
         : passwordOnly
@@ -68,7 +72,7 @@ export function AccountForm({
         window.location.replace("/devocional");
         return;
       }
-      setMessage("message" in result ? (result.message ?? "") : "Não foi possível entrar.");
+      setMessage("message" in result ? (result.message ?? "") + (result.ok && signup && code.trim() ? " Seu convite será verificado ao entrar com o e-mail confirmado. Guarde o código para usar novamente, se necessário." : "") : "Não foi possível entrar.");
       setFinished(result.ok && (signup || recover || passwordOnly));
     } catch {
       setMessage("Não foi possível concluir agora. Tente novamente em alguns instantes.");
@@ -117,6 +121,15 @@ export function AccountForm({
             </span>
           </label>
         )}
+        {(signup || kind === "login") && (
+          <label className="block eyebrow">
+            Código de convite · opcional
+            <input name="sampleCode" value={code} onChange={(event) => setCode(event.target.value)} autoComplete="off" maxLength={80} className={input} />
+            <span className="font-label text-xs normal-case tracking-normal text-muted-foreground">
+              Recebeu um convite? Use o código para conhecer somente o Dia 1. O cadastro sem convite não libera a amostra.
+            </span>
+          </label>
+        )}
         <button disabled={busy || finished} className={accountButton}>
           {busy
             ? "Aguarde…"
@@ -143,6 +156,7 @@ export function AccountForm({
             setBusy(true);
             setMessage("");
             try {
+              await stageSampleCode({ data: { code } });
               const available = await googleSignInAvailable();
               if (!available.enabled) {
                 setMessage("A entrada com Google não está disponível agora. Use e-mail e senha.");
@@ -192,4 +206,27 @@ export function AccountForm({
       </div>
     </>
   );
+}
+
+export function SampleInvitationForm() {
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  return <form className="space-y-4 border-t border-border pt-6" onSubmit={async (event) => {
+    event.preventDefault();
+    const code = String(new FormData(event.currentTarget).get("code") ?? "").trim();
+    setBusy(true); setMessage("");
+    try {
+      const result = await redeemSampleCode({ data: { code } });
+      if (result.ok) { window.location.replace("/dia/1"); return; }
+      setMessage(result.message);
+    } catch { setMessage("Não foi possível verificar o convite agora. Tente novamente."); }
+    finally { setBusy(false); }
+  }}>
+    <label className="block eyebrow">Recebeu um convite para a amostra?
+      <input name="code" required maxLength={80} autoComplete="off" placeholder="Código de convite" className="mt-2 block w-full border-b border-border bg-transparent px-1 py-3 font-serif text-xl outline-none focus:border-ember" />
+    </label>
+    <p className="text-sm text-muted-foreground">O convite libera somente o Dia 1 na sua conta.</p>
+    <button disabled={busy} className={accountButton}>{busy ? "Verificando…" : "Liberar minha amostra"}</button>
+    {message && <p role="status" className="text-ember">{message}</p>}
+  </form>;
 }

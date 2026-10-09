@@ -4,10 +4,12 @@ import { useSession as createCookieSession, setResponseHeader } from "@tanstack/
 import { redirect } from "@tanstack/react-router";
 import { z } from "zod";
 import { accountClient, accountsEnabled, googleProviderEnabled } from "./supabase.server";
-import { ACCOUNT_PATHS, accessDecision } from "./accounts";
+import { ACCOUNT_PATHS, devotionalDecision } from "./accounts";
 import { progressFrom, type Progress } from "./progression";
 
 type AuthData = {
+  sampleCode?: string | undefined;
+  sampleError?: string | undefined;
   accessToken?: string;
   refreshToken?: string;
   oauthStorage?: Record<string, string> | undefined;
@@ -52,31 +54,41 @@ export async function currentAccount() {
   }
   if (checked.error || !checked.data.user || !checked.data.user.email_confirmed_at) return null;
   const client = accountClient(token);
+  let invitationMessage: string | null = session.data.sampleError ?? null;
+  if (session.data.sampleCode) {
+    const redeemed = await client.rpc("redeem_devotional_sample", { p_code: session.data.sampleCode });
+    if (redeemed.error) throw new Error("Could not redeem the sample invitation.");
+    if (!["granted", "already_granted", "paid"].includes(redeemed.data))
+      invitationMessage = "O código não liberou a amostra. Confira o convite recebido ou peça um novo código.";
+    await session.update({ sampleCode: undefined, sampleError: invitationMessage ?? undefined });
+  }
   // Link Kiwify purchases made with this confirmed email before the account existed.
   await client.rpc("claim_devotional_purchases");
   const { data, error } = await client
     .from("devotional_access")
-    .select("access_status, access_started_at, expires_at, updated_at")
+    .select("access_status, access_started_at, expires_at, updated_at, sample_granted_at")
     .eq("user_id", checked.data.user.id)
     .maybeSingle();
   if (error) throw new Error("Could not verify product access.");
   const access = z
     .object({
       access_status: z.enum(["pending", "active", "expired", "cancelled"]),
+      sample_granted_at: z.string().nullable().optional(),
       expires_at: z.string().nullable(),
       access_started_at: z.string().nullable(),
       updated_at: z.string(),
     })
     .nullable()
     .parse(data);
-  return { user: checked.data.user, client, access };
+  return { user: checked.data.user, client, access, invitationMessage };
 }
 
 function requireAccessFor(account: Awaited<ReturnType<typeof currentAccount>>) {
-  const decision = accessDecision(
+  const decision = devotionalDecision(
     account?.user.id ?? null,
     account?.access?.access_status ?? null,
     account?.access?.expires_at ?? null,
+    account?.access?.sample_granted_at,
   );
   if (decision === "login") throw redirect({ href: ACCOUNT_PATHS.login });
   if (decision === "denied") throw redirect({ href: ACCOUNT_PATHS.denied });
@@ -88,6 +100,7 @@ async function requireAccess() {
 }
 
 const persistedProgress = z.object({
+  maxReadableDay: z.literal(1).optional(),
   completed: z.number().int().min(0).max(90),
   currentDay: z.number().int().min(1).max(90).nullable(),
   ownerId: z.string().uuid(),
@@ -98,7 +111,7 @@ function checkedProgress(data: unknown, userId: string): Progress {
   const canonical = progressFrom(result.completed, result.nextAvailableAt);
   if (result.ownerId !== userId || result.currentDay !== canonical.currentDay)
     throw new Error("Invalid account progress.");
-  return { ...canonical, ownerId: userId };
+  return { ...canonical, ownerId: userId, ...(result.maxReadableDay === 1 ? { maxReadableDay: 1 as const } : {}) };
 }
 
 export function accountProgress(publicView = false) {
@@ -107,10 +120,11 @@ export function accountProgress(publicView = false) {
       const account = await currentAccount();
       if (publicView) {
         if (
-          accessDecision(
+          devotionalDecision(
             account?.user.id ?? null,
             account?.access?.access_status ?? null,
             account?.access?.expires_at ?? null,
+    account?.access?.sample_granted_at,
           ) !== "allowed"
         )
           return { ...progressFrom(0), ownerId: account?.user.id ?? null };
@@ -331,7 +345,7 @@ export async function finishGoogleAccount(code: string) {
 export async function landingAccountState() {
   const account = await currentAccount();
   if (!account) return null;
-  const allowed = accessDecision(account.user.id, account.access?.access_status ?? null, account.access?.expires_at ?? null) === "allowed";
+  const allowed = devotionalDecision(account.user.id, account.access?.access_status ?? null, account.access?.expires_at ?? null, account.access?.sample_granted_at) === "allowed";
   let progress: Progress = { ...progressFrom(0), ownerId: account.user.id };
   if (allowed) {
     const { data, error } = await account.client.rpc("get_devotional_progress");
@@ -339,4 +353,18 @@ export async function landingAccountState() {
     progress = checkedProgress(data, account.user.id);
   }
   return { userId: account.user.id, access: account.access, progress };
+}
+
+export async function stageSampleInvitation(code: string) {
+  const session = await authSession();
+  await session.update({ sampleCode: code.trim().toUpperCase() || undefined, sampleError: undefined });
+  return { ok: true };
+}
+export async function redeemSampleInvitation(code: string) {
+  const account = await currentAccount();
+  if (!account) return { ok: false, message: "Entre na sua conta e confirme seu e-mail antes de usar o convite." };
+  const { data, error } = await account.client.rpc("redeem_devotional_sample", { p_code: code.trim().toUpperCase() });
+  if (error) return { ok: false, message: "Não foi possível verificar o convite agora. Tente novamente." };
+  if (["granted", "already_granted", "paid"].includes(data)) return { ok: true, message: "Amostra liberada. Você já pode conhecer o Dia 1." };
+  return { ok: false, message: data === "unavailable" ? "Este acesso não permite ativar uma amostra. Fale com o suporte." : "Código inválido, encerrado ou sem vagas. Confira o convite recebido." };
 }

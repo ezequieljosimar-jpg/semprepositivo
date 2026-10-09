@@ -6,11 +6,13 @@ const mocks = vi.hoisted(() => {
       accessToken?: string;
       refreshToken?: string;
       oauthStorage?: Record<string, string>;
+      sampleCode?: string;
     },
     update: vi.fn(),
     clear: vi.fn(),
   };
   const access = {
+    sample_granted_at: null as string | null,
     access_status: "active",
     expires_at: null,
     access_started_at: null,
@@ -59,6 +61,8 @@ import {
   changeAccountPassword,
   beginGoogleAccount,
   finishGoogleAccount,
+  stageSampleInvitation,
+  redeemSampleInvitation,
 } from "@/lib/account-session.server";
 
 const A = "00000000-0000-4000-8000-000000000001";
@@ -68,6 +72,7 @@ beforeEach(() => {
   vi.stubEnv("PROGRESS_SESSION_SECRET", "isolated-test-only-session-secret-32-characters");
   mocks.session.data = { accessToken: "isolated-test-token" };
   mocks.access.access_status = "active";
+  mocks.access.sample_granted_at = null;
   mocks.client.auth.getUser.mockResolvedValue({
     data: { user: { id: A, email_confirmed_at: "2026-01-01T00:00:00Z" } },
     error: null,
@@ -402,4 +407,36 @@ it("does not read protected progress for a pending landing account", async () =>
 it("does not expose another user's progress in landing state", async () => {
   mocks.client.rpc.mockResolvedValue({ data: { completed: 1, currentDay: 2, nextAvailableAt: null, ownerId: B }, error: null });
   await expect(landingAccountState()).rejects.toThrow("Invalid account progress");
+});
+
+it("stages an invitation in the encrypted cookie without granting access", async () => {
+  expect(await stageSampleInvitation(" local-test-invite ")).toEqual({ok:true});
+  expect(mocks.session.update).toHaveBeenCalledWith({sampleCode:"LOCAL-TEST-INVITE",sampleError:undefined});
+  expect(mocks.client.rpc).not.toHaveBeenCalled();
+});
+it("does not redeem staged invitations before verified email confirmation", async () => {
+  mocks.session.data.sampleCode="LOCAL-TEST-INVITE";
+  mocks.client.auth.getUser.mockResolvedValue({data:{user:{id:A,email_confirmed_at:null}},error:null});
+  expect(await currentAccount()).toBeNull();
+  expect(mocks.client.rpc).not.toHaveBeenCalled();
+});
+it("redeems a staged invitation through the caller's authenticated RPC and clears the staged code", async () => {
+  mocks.session.data.sampleCode="LOCAL-TEST-INVITE";
+  mocks.client.rpc.mockImplementation(async (name) => ({data:name==="redeem_devotional_sample"?"granted":null,error:null}));
+  await currentAccount();
+  expect(mocks.client.rpc).toHaveBeenCalledWith("redeem_devotional_sample",{p_code:"LOCAL-TEST-INVITE"});
+  expect(mocks.session.update).toHaveBeenCalledWith({sampleCode:undefined,sampleError:undefined});
+});
+it("keeps the trusted database sample cap on server-side progress reads", async () => {
+  mocks.access.access_status="pending";
+  mocks.access.sample_granted_at="2026-10-09T00:00:00Z";
+  mocks.client.rpc.mockResolvedValue({data:{completed:1,currentDay:2,nextAvailableAt:"2026-10-09T12:00:00Z",ownerId:A,maxReadableDay:1},error:null});
+  expect(await accountProgress().read()).toMatchObject({completed:1,ownerId:A,maxReadableDay:1});
+});
+it("reports invalid authenticated invitation claims without granting paid access", async () => {
+  mocks.client.rpc.mockResolvedValue({data:"invalid",error:null});
+  const result=await redeemSampleInvitation("wrong-code");
+  expect(result.ok).toBe(false);
+  expect(result.message).toContain("Código inválido");
+  expect(mocks.client.rpc).not.toHaveBeenCalledWith("complete_devotional_day",expect.anything());
 });

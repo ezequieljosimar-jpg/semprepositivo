@@ -74,10 +74,10 @@ function Fase() {
         <div className="mt-12">
           <Link
             to="/dia/$n"
-            params={{ n: String(progress.currentDay ?? 90) }}
+            params={{ n: String(progress.maxReadableDay === 1 ? 1 : (progress.currentDay ?? 90)) }}
             className="font-label inline-block bg-primary px-8 py-4 text-sm font-semibold uppercase tracking-[0.2em] text-primary-foreground hover:bg-ember"
           >
-            Continuar no Dia {pad(progress.currentDay ?? 90)}
+            Continuar no Dia {pad(progress.maxReadableDay === 1 ? 1 : (progress.currentDay ?? 90))}
           </Link>
         </div>
       </main>
