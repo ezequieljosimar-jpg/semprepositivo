@@ -325,3 +325,18 @@ export async function finishGoogleAccount(code: string) {
   // Auth may create the profile, but never activates product access.
   return { ok: true };
 }
+
+// Public landing UI loads this in the background. Product content still goes
+// through requireAccess and the database's protected RPCs on every request.
+export async function landingAccountState() {
+  const account = await currentAccount();
+  if (!account) return null;
+  const allowed = accessDecision(account.user.id, account.access?.access_status ?? null, account.access?.expires_at ?? null) === "allowed";
+  let progress: Progress = { ...progressFrom(0), ownerId: account.user.id };
+  if (allowed) {
+    const { data, error } = await account.client.rpc("get_devotional_progress");
+    if (error) throw new Error("Could not load account progress.");
+    progress = checkedProgress(data, account.user.id);
+  }
+  return { userId: account.user.id, access: account.access, progress };
+}

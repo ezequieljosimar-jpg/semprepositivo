@@ -1,20 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import cover from "@/assets/cover-cross-light.webp";
 import { Footer, Rule, SectionLabel } from "@/components/book";
-import { useJourney } from "@/hooks/use-journey";
 import { phases } from "@/lib/catalog";
-import { getMyAccount } from "@/lib/account-actions";
+import { getLandingAccount } from "@/lib/account-actions";
 import { accessDecision } from "@/lib/accounts";
 
 const homeAccountOptions = queryOptions({
   queryKey: ["home-account"],
-  queryFn: () => getMyAccount(),
-  staleTime: 0,
+  queryFn: () => getLandingAccount(),
+  staleTime: 30_000,
+  refetchInterval: 60_000,
 });
 
 export const Route = createFileRoute("/")({
-  loader: ({ context }) => context.queryClient.ensureQueryData(homeAccountOptions),
   head: () => ({
     meta: [
       { title: "Devocional Sempre Positivo — É amargo, mas cura" },
@@ -39,10 +38,11 @@ const journey = ["Confronto", "Reflexão", "Decisão", "Cura", "Mudança", "Tran
 const steps = ["Ler", "Refletir", "Escrever", "Decidir", "Orar", "Agir"];
 
 function Index() {
-  const { currentDay, completed } = useJourney();
-  const { data: account } = useSuspenseQuery(homeAccountOptions);
+  const { data: account } = useQuery(homeAccountOptions);
+  const currentDay = account?.progress.currentDay;
+  const completed = account?.progress.completed ?? 0;
   const hasAccess = accessDecision(
-    account?.profile.user_id ?? null,
+    account?.userId ?? null,
     account?.access?.access_status ?? null,
     account?.access?.expires_at ?? null,
   ) === "allowed";
@@ -63,6 +63,7 @@ function Index() {
         />
         <div className="vignette absolute inset-0" />
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent md:bg-gradient-to-r md:from-ink/80 md:via-ink/10 md:to-transparent" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-b from-transparent to-ink" />
         <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col justify-between px-6 py-10">
           <div className="flex items-center justify-between">
             <span className="eyebrow opacity-70">Devocional · 90 dias</span>
@@ -119,6 +120,9 @@ function Index() {
           </p>
         </div>
       </section>
+
+      {/* Smooth the existing dark-to-paper boundary within its original spacing. */}
+      <div aria-hidden="true" className="pointer-events-none relative h-28 -mb-28 bg-[linear-gradient(to_bottom,var(--ink)_0%,var(--background)_100%)]" />
 
       {/* APRESENTAÇÃO */}
       <article className="mx-auto max-w-2xl px-6 pt-28">

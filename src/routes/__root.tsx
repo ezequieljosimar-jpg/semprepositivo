@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 
 import { JourneyReleaseWatcher } from "@/hooks/use-journey";
 import { getProgress } from "@/lib/journey";
+import { progressFrom } from "@/lib/progression";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -77,7 +78,12 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  beforeLoad: async () => ({ progress: await getProgress() }),
+  beforeLoad: async ({ location }) => {
+    // Public landing/auth pages must render without waiting for purchase and
+    // progress queries. Protected routes retain their server checks.
+    const progressDeferred = ["/", "/login", "/cadastro", "/recuperar-senha", "/nova-senha", "/auth/retorno", "/compra"].includes(location.pathname);
+    return { progress: progressDeferred ? { ...progressFrom(0), ownerId: null } : await getProgress(), progressDeferred };
+  },
   headers: () => ({ "Cache-Control": "private, no-store" }),
   head: () => ({
     meta: [

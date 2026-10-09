@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { Route as RootRoute } from "@/routes/__root";
 import { completeDay, getProgress } from "@/lib/journey";
-import { useEffect } from "react";
+import { createElement, useEffect } from "react";
 import { waitingForNextDay, canRead, type Progress } from "@/lib/progression";
 
 export function useJourney(watchRelease = false) {
@@ -49,6 +49,11 @@ export function useJourney(watchRelease = false) {
 }
 
 export function JourneyReleaseWatcher() {
+  const { progressDeferred } = RootRoute.useRouteContext();
+  return progressDeferred ? null : createElement(ActiveJourneyReleaseWatcher);
+}
+
+function ActiveJourneyReleaseWatcher() {
   useJourney(true);
   return null;
 }

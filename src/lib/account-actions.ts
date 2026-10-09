@@ -94,3 +94,10 @@ export const googleSignInAvailable = createServerFn({ method: "GET" }).handler(a
   const { googleProviderEnabled } = await import("./supabase.server");
   return { enabled: await googleProviderEnabled() === true };
 });
+
+export const getLandingAccount = createServerFn({ method: "GET" }).handler(async () => {
+  const { accountsEnabled } = await import("./supabase.server");
+  if (!accountsEnabled()) return null;
+  const { landingAccountState } = await import("./account-session.server");
+  return landingAccountState();
+});

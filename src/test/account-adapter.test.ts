@@ -49,6 +49,7 @@ vi.mock("@/lib/supabase.server", () => ({
 }));
 import {
   accountProgress,
+  landingAccountState,
   acceptAccountSession,
   recoverAccount,
   registerAccount,
@@ -387,3 +388,18 @@ it("always removes the browser session when remote logout fails", async () => {
   expect(mocks.client.auth.getUser).toHaveBeenCalledTimes(1);
   expect(mocks.client.rpc).not.toHaveBeenCalledWith("get_devotional_progress");
  });
+
+it("loads landing state with one verified identity and the caller's progress", async () => {
+  expect(await landingAccountState()).toMatchObject({ userId: A, access: { access_status: "active" }, progress: { ownerId: A } });
+  expect(mocks.client.auth.getUser).toHaveBeenCalledTimes(1);
+  expect(mocks.client.rpc).toHaveBeenCalledWith("get_devotional_progress");
+});
+it("does not read protected progress for a pending landing account", async () => {
+  mocks.access.access_status = "pending";
+  expect(await landingAccountState()).toMatchObject({ userId: A, progress: { completed: 0 } });
+  expect(mocks.client.rpc).not.toHaveBeenCalledWith("get_devotional_progress");
+});
+it("does not expose another user's progress in landing state", async () => {
+  mocks.client.rpc.mockResolvedValue({ data: { completed: 1, currentDay: 2, nextAvailableAt: null, ownerId: B }, error: null });
+  await expect(landingAccountState()).rejects.toThrow("Invalid account progress");
+});
