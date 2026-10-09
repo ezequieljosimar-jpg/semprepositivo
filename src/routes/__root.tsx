@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+import { AmbientMusic } from "@/components/ambient-music";
 import { JourneyReleaseWatcher } from "@/hooks/use-journey";
 import { getProgress } from "@/lib/journey";
 import { progressFrom } from "@/lib/progression";
@@ -139,6 +140,7 @@ function RootComponent() {
       <JourneyReleaseWatcher />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <AmbientMusic />
     </QueryClientProvider>
   );
 }
