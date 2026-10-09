@@ -55,6 +55,8 @@ function Index() {
         <img
           src={cover}
           alt=""
+          fetchPriority="high"
+          decoding="async"
           width={1672}
           height={941}
           className="absolute inset-x-0 top-0 h-[64svh] w-full object-cover object-[75%_center] [mask-image:linear-gradient(to_bottom,black_55%,transparent_100%)] md:[mask-image:none] md:inset-0 md:h-full md:object-center"

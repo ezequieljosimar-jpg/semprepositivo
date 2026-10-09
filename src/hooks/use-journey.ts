@@ -15,7 +15,10 @@ export function useJourney(watchRelease = false) {
     queryFn: () => getProgress(),
     initialData: progress,
     refetchInterval: watchRelease ? 60_000 : false,
-    staleTime: 0,
+    // The root loader already verified this progress on the server. Avoid an
+    // immediate duplicate request on hydration; mutations and the release timer
+    // still invalidate it, and every protected operation checks the backend.
+    staleTime: 30_000,
   });
   const value = query.data;
   useEffect(() => {

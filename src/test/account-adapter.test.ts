@@ -375,3 +375,15 @@ it("always removes the browser session when remote logout fails", async () => {
   expect((await changeAccountPassword("new-test-password")).ok).toBe(false);
   expect(mocks.client.auth.updateUser).not.toHaveBeenCalled();
  });
+
+ it("verifies public progress once without skipping backend authorization", async () => {
+  expect((await accountProgress(true).read()).ownerId).toBe(A);
+  expect(mocks.client.auth.getUser).toHaveBeenCalledTimes(1);
+  expect(mocks.client.rpc).toHaveBeenCalledWith("get_devotional_progress");
+ });
+ it("keeps pending public progress empty without reading protected progress", async () => {
+  mocks.access.access_status = "pending";
+  expect(await accountProgress(true).read()).toMatchObject({ completed: 0, ownerId: A });
+  expect(mocks.client.auth.getUser).toHaveBeenCalledTimes(1);
+  expect(mocks.client.rpc).not.toHaveBeenCalledWith("get_devotional_progress");
+ });

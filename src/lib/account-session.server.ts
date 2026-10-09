@@ -72,8 +72,7 @@ export async function currentAccount() {
   return { user: checked.data.user, client, access };
 }
 
-async function requireAccess() {
-  const account = await currentAccount();
+function requireAccessFor(account: Awaited<ReturnType<typeof currentAccount>>) {
   const decision = accessDecision(
     account?.user.id ?? null,
     account?.access?.access_status ?? null,
@@ -82,6 +81,10 @@ async function requireAccess() {
   if (decision === "login") throw redirect({ href: ACCOUNT_PATHS.login });
   if (decision === "denied") throw redirect({ href: ACCOUNT_PATHS.denied });
   return account!;
+}
+
+async function requireAccess() {
+  return requireAccessFor(await currentAccount());
 }
 
 const persistedProgress = z.object({
@@ -101,8 +104,8 @@ function checkedProgress(data: unknown, userId: string): Progress {
 export function accountProgress(publicView = false) {
   return {
     async read(): Promise<Progress> {
+      const account = await currentAccount();
       if (publicView) {
-        const account = await currentAccount();
         if (
           accessDecision(
             account?.user.id ?? null,
@@ -112,10 +115,10 @@ export function accountProgress(publicView = false) {
         )
           return { ...progressFrom(0), ownerId: account?.user.id ?? null };
       }
-      const account = await requireAccess();
-      const { data, error } = await account.client.rpc("get_devotional_progress");
+      const authorized = requireAccessFor(account);
+      const { data, error } = await authorized.client.rpc("get_devotional_progress");
       if (error) throw new Error("Could not load account progress.");
-      return checkedProgress(data, account.user.id);
+      return checkedProgress(data, authorized.user.id);
     },
     async complete(day: number): Promise<Progress> {
       const account = await requireAccess();
