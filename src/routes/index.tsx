@@ -63,7 +63,7 @@ function Index() {
         />
         <div className="vignette absolute inset-0" />
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent md:bg-gradient-to-r md:from-ink/80 md:via-ink/10 md:to-transparent" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-b from-transparent to-ink" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_oklab,var(--ink)_15%,transparent)_35%,color-mix(in_oklab,var(--ink)_65%,transparent)_70%,var(--ink)_100%)]" />
         <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col justify-between px-6 py-10">
           <div className="flex items-center justify-between">
             <span className="eyebrow opacity-70">Devocional · 90 dias</span>
@@ -121,11 +121,11 @@ function Index() {
         </div>
       </section>
 
-      {/* Smooth the existing dark-to-paper boundary within its original spacing. */}
-      <div aria-hidden="true" className="pointer-events-none relative h-28 -mb-28 bg-[linear-gradient(to_bottom,var(--ink)_0%,var(--background)_100%)]" />
+      {/* Ease gradually into the paper background, with flat slopes at both ends. */}
+      <div aria-hidden="true" className="pointer-events-none relative h-48 -mb-48 bg-[linear-gradient(to_bottom,var(--ink)_0%,color-mix(in_oklab,var(--ink)_97%,var(--background))_12%,color-mix(in_oklab,var(--ink)_87%,var(--background))_25%,color-mix(in_oklab,var(--ink)_68%,var(--background))_37%,color-mix(in_oklab,var(--ink)_42%,var(--background))_50%,color-mix(in_oklab,var(--ink)_19%,var(--background))_65%,color-mix(in_oklab,var(--ink)_6%,var(--background))_80%,color-mix(in_oklab,var(--ink)_1%,var(--background))_92%,var(--background)_100%)]" />
 
       {/* APRESENTAÇÃO */}
-      <article className="mx-auto max-w-2xl px-6 pt-28">
+      <article className="mx-auto max-w-2xl px-6 pt-48">
         <SectionLabel>Apresentação</SectionLabel>
         <h2 className="font-display text-5xl uppercase leading-none md:text-6xl">
           Algumas verdades de Deus doem antes de curar.
