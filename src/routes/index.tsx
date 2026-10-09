@@ -125,7 +125,7 @@ function Index() {
       <div aria-hidden="true" className="pointer-events-none relative h-[clamp(18rem,32vw,28rem)] -mb-[clamp(18rem,32vw,28rem)] bg-[linear-gradient(to_bottom,var(--ink)_0%,color-mix(in_oklab,var(--ink)_97%,var(--background))_12%,color-mix(in_oklab,var(--ink)_87%,var(--background))_25%,color-mix(in_oklab,var(--ink)_68%,var(--background))_37%,color-mix(in_oklab,var(--ink)_42%,var(--background))_50%,color-mix(in_oklab,var(--ink)_19%,var(--background))_65%,color-mix(in_oklab,var(--ink)_6%,var(--background))_80%,color-mix(in_oklab,var(--ink)_1%,var(--background))_92%,var(--background)_100%)]" />
 
       {/* APRESENTAÇÃO */}
-      <article className="mx-auto max-w-2xl px-6 pt-[clamp(18rem,32vw,28rem)]">
+      <article className="relative mx-auto max-w-2xl px-6 pt-[clamp(12rem,23vw,20rem)]">
         <SectionLabel>Apresentação</SectionLabel>
         <h2 className="font-display text-5xl uppercase leading-none md:text-6xl">
           Algumas verdades de Deus doem antes de curar.
