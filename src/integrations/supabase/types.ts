@@ -19,7 +19,6 @@ export type Database = {
           access_started_at: string | null
           access_status: string
           expires_at: string | null
-          sample_granted_at: string | null
           updated_at: string
           user_id: string
         }
@@ -27,7 +26,6 @@ export type Database = {
           access_started_at?: string | null
           access_status?: string
           expires_at?: string | null
-          sample_granted_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -35,7 +33,6 @@ export type Database = {
           access_started_at?: string | null
           access_status?: string
           expires_at?: string | null
-          sample_granted_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -178,39 +175,6 @@ export type Database = {
         }
         Relationships: []
       }
-      devotional_sample_invites: {
-        Row: {
-          code_hash: string
-          created_at: string
-          enabled: boolean
-          expires_at: string | null
-          id: string
-          label: string
-          max_uses: number | null
-          used_count: number
-        }
-        Insert: {
-          code_hash: string
-          created_at?: string
-          enabled?: boolean
-          expires_at?: string | null
-          id?: string
-          label: string
-          max_uses?: number | null
-          used_count?: number
-        }
-        Update: {
-          code_hash?: string
-          created_at?: string
-          enabled?: boolean
-          expires_at?: string | null
-          id?: string
-          label?: string
-          max_uses?: number | null
-          used_count?: number
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
@@ -246,7 +210,6 @@ export type Database = {
         }
         Returns: string
       }
-      redeem_devotional_sample: { Args: { p_code: string }; Returns: string }
       refresh_devotional_access: {
         Args: { p_user_id: string }
         Returns: undefined
