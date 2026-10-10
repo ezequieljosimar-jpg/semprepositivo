@@ -158,9 +158,9 @@ function SalesPage() {
               adiando e uma rotina com Deus que deseja cultivar com mais constância.
             </p>
             <p>
-              Este devocional não oferece atalhos nem resultados garantidos. Ele propõe um caminho
-              diário de leitura, confronto, escrita, oração e prática — para quem decidiu parar de
-              apenas pensar na mudança e começar a responder a ela.
+              A cada dia, uma leitura para refletir, perguntas para responder, uma oração e uma
+              atitude para praticar. Um caminho para quem deseja cultivar constância com Deus e
+              levar a fé para as escolhas do dia a dia.
             </p>
           </div>
         </div>
