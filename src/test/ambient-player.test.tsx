@@ -1,9 +1,9 @@
 import { cleanup, fireEvent, render, screen, act } from "@testing-library/react";
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi, type Mock } from "vitest";
 import { AmbientPlayer } from "@/components/ambient-player";
 
 let paused = true;
-let play: ReturnType<typeof vi.fn>;
+let play: Mock<() => Promise<void>>;
 beforeEach(() => {
   localStorage.clear();
   paused = true;
@@ -15,7 +15,7 @@ beforeEach(() => {
     return Promise.resolve();
   });
   vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(play);
-  vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(function () {
+  vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(function (this: HTMLMediaElement) {
     paused = true;
     this.dispatchEvent(new Event("pause"));
   });
