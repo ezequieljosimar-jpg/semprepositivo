@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BookOpen, Check, PenLine, Target } from "lucide-react";
-import cover from "@/assets/cover.jpg";
+import { BookOpen, Check, Music2, PenLine, Target } from "lucide-react";
+import cover from "@/assets/cover-cross-light.webp";
 import { Footer, SectionLabel } from "@/components/book";
 import {
   Accordion,
@@ -56,6 +56,11 @@ const features = [
     title: "Progresso da jornada",
     text: "Acompanhe os dias concluídos e continue no seu ritmo, um dia de cada vez.",
   },
+  {
+    icon: Music2,
+    title: "Música de reflexão",
+    text: "Ouça a trilha ambiente com controles de reprodução e volume enquanto percorre a jornada.",
+  },
 ];
 
 const faq = [
@@ -72,7 +77,7 @@ const faq = [
   {
     question: "Qual é o ritmo da jornada?",
     answer:
-      "Um dia de cada vez. Depois de concluir o dia atual, o próximo é liberado após 12 horas. Você pode reler os dias já concluídos.",
+      "Um dia de cada vez. Depois de concluir o dia atual, o próximo é liberado após 6 horas. Você pode reler os dias já concluídos.",
   },
   {
     question: "Preciso baixar um aplicativo?",
@@ -100,8 +105,8 @@ function SalesPage() {
         <img
           src={cover}
           alt="Frasco escuro aberto com comprimidos sobre uma superfície"
-          width={1920}
-          height={1088}
+          width={1672}
+          height={941}
           className="photo-bw absolute inset-0 h-full w-full object-cover object-[70%_center] opacity-70"
         />
         <div className="vignette absolute inset-0" />
@@ -167,7 +172,7 @@ function SalesPage() {
           <h2 className="font-display max-w-3xl text-5xl uppercase leading-none md:text-6xl">
             Uma experiência feita para ler, responder e agir.
           </h2>
-          <div className="mt-14 grid border-y border-ink-foreground/15 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-14 grid border-y border-ink-foreground/15 sm:grid-cols-2 lg:grid-cols-5">
             {features.map(({ icon: Icon, title, text }) => (
               <div
                 key={title}
@@ -268,8 +273,8 @@ function SalesPage() {
         <img
           src={cover}
           alt=""
-          width={1920}
-          height={1088}
+          width={1672}
+          height={941}
           loading="lazy"
           className="photo-bw absolute inset-0 h-full w-full object-cover opacity-20"
         />
