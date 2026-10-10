@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BookOpen, Check, Headphones, PenLine, Play, Target } from "lucide-react";
+import { BookOpen, Check, PenLine, Target } from "lucide-react";
 import cover from "@/assets/cover.jpg";
 import { Footer, SectionLabel } from "@/components/book";
 import {
