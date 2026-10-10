@@ -165,6 +165,9 @@ try {
   const savedCookie = cookie;
   assert.ok(!savedCookie.includes("fixture-access"));
   assert.equal((await rpc("getMyAccount", undefined, "GET")).access.access_status, "pending");
+  const pendingHome = await (await transport("/")).text();
+  assert.equal(pendingHome.includes("Quero acessar o devocional"), true);
+  assert.equal(pendingHome.includes("Começar o Dia 01"), false);
   assert.equal((await (await transport("/dia/30")).text()).includes("Seu acesso ainda"), true);
   assert.equal((await rpc("beginGoogleSignIn")).ok, false);
   assert.equal((await rpc("getMyAccount", undefined, "GET")).profile.user_id, uid); // Refresh
@@ -172,6 +175,9 @@ try {
   await start(); // Same browser cookie; new application process
   assert.equal((await rpc("getMyAccount", undefined, "GET")).profile.user_id, uid);
   access = "active";
+  const activeHome = await (await transport("/")).text();
+  assert.equal(activeHome.includes("Começar o Dia 01"), true);
+  assert.equal(activeHome.includes("Quero acessar o devocional"), false);
   assert.equal((await (await transport("/dia/1")).text()).includes("Concluir este dia"), true);
   assert.equal((await (await transport("/dia/30")).text()).includes("Ainda não"), true);
   completed = 1;
