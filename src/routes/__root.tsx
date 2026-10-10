@@ -11,6 +11,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import { JourneyReleaseWatcher } from "@/hooks/use-journey";
+import { AmbientPlayer } from "@/components/ambient-player";
 import { getProgress } from "@/lib/journey";
 import { progressFrom } from "@/lib/progression";
 
@@ -139,6 +140,7 @@ function RootComponent() {
       <JourneyReleaseWatcher />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <AmbientPlayer />
     </QueryClientProvider>
   );
 }
