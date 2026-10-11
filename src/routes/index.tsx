@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery } from "@tanstack/react-query";
+import { InstallDevocional } from "@/components/install-devocional";
 import cover from "@/assets/cover-cross-light.webp";
 import { Footer, Rule, SectionLabel } from "@/components/book";
 import { phases } from "@/lib/catalog";
@@ -108,6 +109,7 @@ function Index() {
                 Sumário
               </Link>
             </div>
+            <div className="mt-5"><InstallDevocional /></div>
             {!account && (
               <p className="mt-5 text-sm">
                 <Link to="/login" className="text-ember">
