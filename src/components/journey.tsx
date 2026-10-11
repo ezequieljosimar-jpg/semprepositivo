@@ -1,3 +1,4 @@
+import { ReadingTools } from "@/components/reading-tools";
 import { Link } from "@tanstack/react-router";
 import { LockKeyhole } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
@@ -90,7 +91,8 @@ export function LockedDay() {
   return (
     <>
       <TopBar />
-      <main className="mx-auto max-w-2xl px-6 pt-20">
+      <main className="mx-auto max-w-2xl px-6 pt-8">
+        <ReadingTools />
         <p className="eyebrow flex items-center gap-2 text-ember">
           <LockKeyhole size={16} />
           Dia bloqueado
