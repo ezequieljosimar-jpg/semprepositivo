@@ -1,0 +1,17 @@
+{
+  "id": "/",
+  "name": "É Amargo, Mas Cura — Sempre Positivo",
+  "short_name": "Devocional",
+  "lang": "pt-BR",
+  "description": "Sua jornada de 90 dias: enfrente a verdade, receba a cura, viva a mudança.",
+  "start_url": "/devocional",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#141210",
+  "theme_color": "#141210",
+  "icons": [
+    { "src": "/icons/devocional-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/devocional-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/devocional-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
