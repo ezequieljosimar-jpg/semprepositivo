@@ -51,7 +51,7 @@ export function ShareRemedy({ remedy }: { remedy: string[] }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-h-[92svh] w-[calc(100%-2rem)] overflow-y-auto">
         <DialogTitle>Compartilhar o remédio</DialogTitle>
-        <DialogDescription>Compartilhe a imagem com o link para conhecer o devocional.</DialogDescription>
+        <DialogDescription>Compartilhe a mensagem deste dia, mesmo que você já o tenha concluído.</DialogDescription>
         {preview && <img src={preview} alt={`O remédio: ${remedy.join(" ")}`} className="mx-auto max-h-[58svh] w-auto max-w-full" />}
         {busy && !file && <p role="status">Preparando sua imagem…</p>}
         {file && preview && <div className="flex flex-wrap gap-3">
@@ -59,6 +59,7 @@ export function ShareRemedy({ remedy }: { remedy: string[] }) {
           <button type="button" onClick={copyLink} className={buttonClass}><Copy size={16} aria-hidden="true" />Copiar link do site</button>
           <a href={preview} download={file.name} className={buttonClass}><Download size={16} aria-hidden="true" />Baixar imagem</a>
         </div>}
+        <p className="text-sm text-muted-foreground">Algumas redes recebem só a imagem. Use “Copiar link do site” para adicionar o endereço manualmente. No Instagram Stories, use a figurinha de link; no TikTok, direcione ao link do perfil, quando disponível.</p>
         <p role="status" aria-live="polite" className="text-sm text-muted-foreground">{notice}</p>
       </DialogContent>
     </Dialog>
