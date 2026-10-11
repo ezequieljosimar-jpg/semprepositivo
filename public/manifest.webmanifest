@@ -10,8 +10,8 @@
   "background_color": "#141210",
   "theme_color": "#141210",
   "icons": [
-    { "src": "/icons/devocional-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/devocional-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/devocional-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "/icons/devocional-192-v2.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/devocional-512-v2.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/devocional-maskable-512-v2.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
