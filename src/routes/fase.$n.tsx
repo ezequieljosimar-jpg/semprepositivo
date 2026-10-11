@@ -1,3 +1,4 @@
+import { ReadingTools } from "@/components/reading-tools";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Footer, TopBar, pad } from "@/components/book";
 import { days, getPhase } from "@/lib/catalog";
@@ -58,7 +59,8 @@ function Fase() {
           </div>
         </div>
       </section>
-      <main className="mx-auto max-w-2xl px-6 pt-20">
+      <main className="mx-auto max-w-2xl px-6 pt-8">
+        <ReadingTools />
         <p className="eyebrow text-muted-foreground">A pergunta desta fase</p>
         <p className="mt-4 font-serif text-3xl italic leading-snug">“{phase.question}”</p>
         <ul className="mt-16 border-t border-border">
