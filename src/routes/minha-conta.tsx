@@ -1,6 +1,9 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { getMyAccount, signOut } from "@/lib/account-actions";
 import { AccountPage, accountButton, SampleInvitationForm } from "@/components/account";
+import { CalendarReminder } from "@/components/calendar-reminder";
+import { accessDecision } from "@/lib/accounts";
+import { InstallDevocional } from "@/components/install-devocional";
 import { useState } from "react";
 export const Route = createFileRoute("/minha-conta")({
   loader: async () => {
@@ -32,6 +35,8 @@ function Page() {
         Seu dia atual
       </Link>
       {account.access?.access_status === "pending" && !account.access?.sample_granted_at && <SampleInvitationForm />}
+      <InstallDevocional prominent />
+      {accessDecision(account.profile.user_id, account.access?.access_status ?? null, account.access?.expires_at ?? null) === "allowed" && <CalendarReminder completed={account.progress.completed} />}
       <div>
         <button
           disabled={busy}
