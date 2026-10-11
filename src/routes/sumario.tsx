@@ -1,3 +1,4 @@
+import { ReadingTools } from "@/components/reading-tools";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Footer, TopBar, pad, useDone } from "@/components/book";
 import { JourneyDayLink, JourneyProgress } from "@/components/journey";
@@ -26,7 +27,8 @@ function Sumario() {
   return (
     <>
       <TopBar />
-      <main className="mx-auto max-w-3xl px-6 pt-20">
+      <main className="mx-auto max-w-3xl px-6 pt-8">
+        <ReadingTools />
         <p className="eyebrow text-ember">Sumário</p>
         <h1 className="font-display mt-4 text-6xl uppercase">90 dias</h1>
         <JourneyProgress />

@@ -1,3 +1,4 @@
+import { ReadingTools } from "@/components/reading-tools";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Footer, Rule, SectionLabel, TopBar, WriteArea, pad, useDone } from "@/components/book";
 import { readDay } from "@/lib/journey";
@@ -63,7 +64,8 @@ function Dia() {
           Fase {phase.n} · {phase.name}
         </span>
       </TopBar>
-      <main key={day.n} className="mx-auto max-w-2xl px-6 pt-20 animate-rise">
+      <main key={day.n} className="mx-auto max-w-2xl px-6 pt-8 animate-rise">
+        <ReadingTools />
         {/* Cabeçalho */}
         <div className="flex items-end gap-6 border-b border-foreground pb-6">
           <span className="font-display text-[7rem] leading-[0.8] text-ember md:text-[9rem]">
