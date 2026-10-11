@@ -107,7 +107,7 @@ function Dia() {
           <SectionLabel>O remédio</SectionLabel>
           <Paras items={day.remedy} className="text-xl font-semibold leading-relaxed" />
         </section>
-        <ShareRemedy remedy={day.remedy} />
+        <ShareRemedy key={`remedy-${day.n}`} remedy={day.remedy} />
 
         {/* Tarefa */}
         <section className="page-sheet mt-20 px-6 py-10 md:px-10">
@@ -146,7 +146,8 @@ function Dia() {
           </div>
         )}
 
-        <div className="mt-14 flex justify-center">
+        <div className="mt-14 flex flex-col items-center gap-4">
+          <ShareRemedy key={`footer-remedy-${day.n}`} remedy={day.remedy} />
           <button
             disabled={isDone || saving}
             onClick={async () => {
