@@ -25,6 +25,7 @@ import { Route as VendasRouteImport } from './routes/vendas'
 import { Route as AuthRetornoRouteImport } from './routes/auth.retorno'
 import { Route as DiaNRouteImport } from './routes/dia.$n'
 import { Route as FaseNRouteImport } from './routes/fase.$n'
+import { Route as IconsNameRouteImport } from './routes/icons.$name'
 import { Route as ApiPublicKiwifyWebhookRouteImport } from './routes/api/public/kiwify/webhook'
 
 const IndexRoute = IndexRouteImport.update({
@@ -107,6 +108,11 @@ const FaseNRoute = FaseNRouteImport.update({
   path: '/fase/$n',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IconsNameRoute = IconsNameRouteImport.update({
+  id: '/icons/$name',
+  path: '/icons/$name',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicKiwifyWebhookRoute = ApiPublicKiwifyWebhookRouteImport.update({
   id: '/api/public/kiwify/webhook',
   path: '/api/public/kiwify/webhook',
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/auth/retorno': typeof AuthRetornoRoute
   '/dia/$n': typeof DiaNRoute
   '/fase/$n': typeof FaseNRoute
+  '/icons/$name': typeof IconsNameRoute
   '/api/public/kiwify/webhook': typeof ApiPublicKiwifyWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -149,6 +156,7 @@ export interface FileRoutesByTo {
   '/auth/retorno': typeof AuthRetornoRoute
   '/dia/$n': typeof DiaNRoute
   '/fase/$n': typeof FaseNRoute
+  '/icons/$name': typeof IconsNameRoute
   '/api/public/kiwify/webhook': typeof ApiPublicKiwifyWebhookRoute
 }
 export interface FileRoutesById {
@@ -169,6 +177,7 @@ export interface FileRoutesById {
   '/auth/retorno': typeof AuthRetornoRoute
   '/dia/$n': typeof DiaNRoute
   '/fase/$n': typeof FaseNRoute
+  '/icons/$name': typeof IconsNameRoute
   '/api/public/kiwify/webhook': typeof ApiPublicKiwifyWebhookRoute
 }
 export interface FileRouteTypes {
@@ -190,6 +199,7 @@ export interface FileRouteTypes {
     | '/auth/retorno'
     | '/dia/$n'
     | '/fase/$n'
+    | '/icons/$name'
     | '/api/public/kiwify/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -209,6 +219,7 @@ export interface FileRouteTypes {
     | '/auth/retorno'
     | '/dia/$n'
     | '/fase/$n'
+    | '/icons/$name'
     | '/api/public/kiwify/webhook'
   id:
     | '__root__'
@@ -228,6 +239,7 @@ export interface FileRouteTypes {
     | '/auth/retorno'
     | '/dia/$n'
     | '/fase/$n'
+    | '/icons/$name'
     | '/api/public/kiwify/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -248,6 +260,7 @@ export interface RootRouteChildren {
   AuthRetornoRoute: typeof AuthRetornoRoute
   DiaNRoute: typeof DiaNRoute
   FaseNRoute: typeof FaseNRoute
+  IconsNameRoute: typeof IconsNameRoute
   ApiPublicKiwifyWebhookRoute: typeof ApiPublicKiwifyWebhookRoute
 }
 
@@ -365,6 +378,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FaseNRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/icons/$name': {
+      id: '/icons/$name'
+      path: '/icons/$name'
+      fullPath: '/icons/$name'
+      preLoaderRoute: typeof IconsNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/kiwify/webhook': {
       id: '/api/public/kiwify/webhook'
       path: '/api/public/kiwify/webhook'
@@ -392,6 +412,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRetornoRoute: AuthRetornoRoute,
   DiaNRoute: DiaNRoute,
   FaseNRoute: FaseNRoute,
+  IconsNameRoute: IconsNameRoute,
   ApiPublicKiwifyWebhookRoute: ApiPublicKiwifyWebhookRoute,
 }
 export const routeTree = rootRouteImport
