@@ -13,7 +13,7 @@ import { phaseImages } from "@/lib/phase-images";
 
 const CHECKOUT_URL = "https://pay.kiwify.com.br/VoRoa1v";
 
-export const Route = createFileRoute("/vendas")({
+export const Route = createFileRoute("/acesso")({
   head: () => ({
     meta: [
       { title: "É Amargo, Mas Cura — Devocional Sempre Positivo" },
