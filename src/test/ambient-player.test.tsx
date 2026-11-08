@@ -8,6 +8,7 @@ beforeEach(() => {
   localStorage.clear();
   paused = true;
   vi.useFakeTimers();
+  Object.defineProperty(Element.prototype, "scrollIntoView", { configurable: true, value: vi.fn() });
   vi.spyOn(HTMLMediaElement.prototype, "paused", "get").mockImplementation(() => paused);
   play = vi.fn(function (this: HTMLMediaElement) {
     paused = false;
@@ -15,6 +16,7 @@ beforeEach(() => {
     return Promise.resolve();
   });
   vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(play);
+  vi.spyOn(HTMLMediaElement.prototype, "load").mockImplementation(() => {});
   vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(function (this: HTMLMediaElement) {
     paused = true;
     this.dispatchEvent(new Event("pause"));
@@ -24,12 +26,14 @@ afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); });
 
 it("defers audio loading and starts softly without blocking render", async () => {
   const { container } = render(<AmbientPlayer />);
-  const audio = container.querySelector("audio")!;
+  const audio = container.querySelector("audio");
+  if (!audio) throw new Error("Audio element missing");
   expect(audio.getAttribute("src")).toBeNull();
   expect(audio.preload).toBe("none");
   expect(audio.volume).toBe(0.2);
   await act(async () => { vi.advanceTimersByTime(300); });
   expect(play).toHaveBeenCalledOnce();
+  expect(audio.getAttribute("src")).toBe("/audio/reflexao.mp3");
   expect(audio.loop).toBe(true);
   expect(screen.getByRole("button", { name: "Pausar música" })).toBeInTheDocument();
 });
@@ -61,11 +65,73 @@ it("restores volume and keeps the same audio while its parent rerenders", async 
   localStorage.setItem("semprepositivo:ambient-paused", "true");
   localStorage.setItem("semprepositivo:ambient-volume", "0.35");
   const { container, rerender } = render(<AmbientPlayer />);
-  const audio = container.querySelector("audio")!;
+  const audio = container.querySelector("audio");
+  if (!audio) throw new Error("Audio element missing");
   expect(audio.volume).toBe(0.35);
   fireEvent.change(screen.getByRole("slider"), { target: { value: "0.1" } });
   rerender(<AmbientPlayer />);
   expect(container.querySelector("audio")).toBe(audio);
   expect(audio.volume).toBe(0.1);
   expect(localStorage.getItem("semprepositivo:ambient-volume")).toBe("0.1");
+});
+
+it.each(["oracao", "descanso"])("restores the %s selection without losing pause and volume", async (track) => {
+  localStorage.setItem("semprepositivo:ambient-track", track);
+  localStorage.setItem("semprepositivo:ambient-paused", "true");
+  localStorage.setItem("semprepositivo:ambient-volume", "0.12");
+  const { container } = render(<AmbientPlayer />);
+  await act(async () => { vi.advanceTimersByTime(300); });
+  expect(play).not.toHaveBeenCalled();
+  await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Reproduzir música" })); });
+  const audio = container.querySelector("audio");
+  expect(audio?.getAttribute("src")).toBe(`/audio/${track}.mp3`);
+  expect(audio?.volume).toBe(0.12);
+});
+
+it("falls back to Reflexão for an invalid saved selection", async () => {
+  localStorage.setItem("semprepositivo:ambient-track", "invalid");
+  const { container } = render(<AmbientPlayer />);
+  await act(async () => { vi.advanceTimersByTime(300); });
+  expect(container.querySelector("audio")?.getAttribute("src")).toBe("/audio/reflexao.mp3");
+});
+
+it("switches tracks on the same audio element after pausing the previous source", async () => {
+  const { container } = render(<AmbientPlayer />);
+  await act(async () => { vi.advanceTimersByTime(300); });
+  const audio = container.querySelector("audio");
+  fireEvent.keyDown(screen.getByRole("combobox"), { key: "ArrowDown" });
+  await act(async () => { vi.runOnlyPendingTimers(); });
+  fireEvent.keyDown(screen.getByRole("option", { name: "Oração" }), { key: "Enter" });
+  await act(async () => {});
+  expect(container.querySelector("audio")).toBe(audio);
+  expect(audio?.getAttribute("src")).toBe("/audio/oracao.mp3");
+  expect(localStorage.getItem("semprepositivo:ambient-track")).toBe("oracao");
+  expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
+  expect(play).toHaveBeenCalledTimes(2);
+  expect(container.querySelectorAll("audio")).toHaveLength(1);
+});
+
+it("keeps a deliberate pause when selecting another track", async () => {
+  localStorage.setItem("semprepositivo:ambient-paused", "true");
+  const { container } = render(<AmbientPlayer />);
+  fireEvent.keyDown(screen.getByRole("combobox"), { key: "ArrowDown" });
+  await act(async () => { vi.runOnlyPendingTimers(); });
+  fireEvent.keyDown(screen.getByRole("option", { name: "Descanso" }), { key: "Enter" });
+  await act(async () => { vi.advanceTimersByTime(300); });
+  expect(container.querySelector("audio")?.getAttribute("src")).toBe("/audio/descanso.mp3");
+  expect(play).not.toHaveBeenCalled();
+  expect(localStorage.getItem("semprepositivo:ambient-paused")).toBe("true");
+});
+
+it("does not autoplay on pointerdown of the play control before its click", async () => {
+  play.mockRejectedValueOnce(new DOMException("Blocked", "NotAllowedError"));
+  render(<AmbientPlayer />);
+  await act(async () => { vi.advanceTimersByTime(300); });
+  play.mockClear();
+  const control = screen.getByRole("button", { name: "Reproduzir música" });
+  await act(async () => { control.dispatchEvent(new Event("pointerdown", { bubbles: true })); });
+  expect(play).not.toHaveBeenCalled();
+  await act(async () => { fireEvent.click(control); });
+  expect(play).toHaveBeenCalledOnce();
+  expect(paused).toBe(false);
 });
