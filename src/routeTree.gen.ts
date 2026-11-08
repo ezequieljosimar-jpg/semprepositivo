@@ -22,6 +22,7 @@ import { Route as NovaSenhaRouteImport } from './routes/nova-senha'
 import { Route as PagamentoConfirmadoRouteImport } from './routes/pagamento-confirmado'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as SumarioRouteImport } from './routes/sumario'
+import { Route as VendasRouteImport } from './routes/vendas'
 import { Route as AuthRetornoRouteImport } from './routes/auth.retorno'
 import { Route as DiaNRouteImport } from './routes/dia.$n'
 import { Route as FaseNRouteImport } from './routes/fase.$n'
@@ -93,6 +94,11 @@ const SumarioRoute = SumarioRouteImport.update({
   path: '/sumario',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VendasRoute = VendasRouteImport.update({
+  id: '/vendas',
+  path: '/vendas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRetornoRoute = AuthRetornoRouteImport.update({
   id: '/auth/retorno',
   path: '/auth/retorno',
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/pagamento-confirmado': typeof PagamentoConfirmadoRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/sumario': typeof SumarioRoute
+  '/vendas': typeof VendasRoute
   '/auth/retorno': typeof AuthRetornoRoute
   '/dia/$n': typeof DiaNRoute
   '/fase/$n': typeof FaseNRoute
@@ -153,6 +160,7 @@ export interface FileRoutesByTo {
   '/pagamento-confirmado': typeof PagamentoConfirmadoRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/sumario': typeof SumarioRoute
+  '/vendas': typeof VendasRoute
   '/auth/retorno': typeof AuthRetornoRoute
   '/dia/$n': typeof DiaNRoute
   '/fase/$n': typeof FaseNRoute
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/pagamento-confirmado': typeof PagamentoConfirmadoRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/sumario': typeof SumarioRoute
+  '/vendas': typeof VendasRoute
   '/auth/retorno': typeof AuthRetornoRoute
   '/dia/$n': typeof DiaNRoute
   '/fase/$n': typeof FaseNRoute
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/pagamento-confirmado'
     | '/recuperar-senha'
     | '/sumario'
+    | '/vendas'
     | '/auth/retorno'
     | '/dia/$n'
     | '/fase/$n'
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/pagamento-confirmado'
     | '/recuperar-senha'
     | '/sumario'
+    | '/vendas'
     | '/auth/retorno'
     | '/dia/$n'
     | '/fase/$n'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '/pagamento-confirmado'
     | '/recuperar-senha'
     | '/sumario'
+    | '/vendas'
     | '/auth/retorno'
     | '/dia/$n'
     | '/fase/$n'
@@ -257,6 +269,7 @@ export interface RootRouteChildren {
   PagamentoConfirmadoRoute: typeof PagamentoConfirmadoRoute
   RecuperarSenhaRoute: typeof RecuperarSenhaRoute
   SumarioRoute: typeof SumarioRoute
+  VendasRoute: typeof VendasRoute
   AuthRetornoRoute: typeof AuthRetornoRoute
   DiaNRoute: typeof DiaNRoute
   FaseNRoute: typeof FaseNRoute
@@ -357,6 +370,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SumarioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vendas': {
+      id: '/vendas'
+      path: '/vendas'
+      fullPath: '/vendas'
+      preLoaderRoute: typeof VendasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/retorno': {
       id: '/auth/retorno'
       path: '/auth/retorno'
@@ -409,6 +429,7 @@ const rootRouteChildren: RootRouteChildren = {
   PagamentoConfirmadoRoute: PagamentoConfirmadoRoute,
   RecuperarSenhaRoute: RecuperarSenhaRoute,
   SumarioRoute: SumarioRoute,
+  VendasRoute: VendasRoute,
   AuthRetornoRoute: AuthRetornoRoute,
   DiaNRoute: DiaNRoute,
   FaseNRoute: FaseNRoute,
