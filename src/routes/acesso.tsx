@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/accordion";
 import { phases } from "@/lib/catalog";
 import { phaseImages } from "@/lib/phase-images";
+import { recordCheckoutClick, type CtaPosition } from "@/lib/checkout-click";
 
 const CHECKOUT_URL = "https://pay.kiwify.com.br/VoRoa1v";
 
@@ -85,12 +86,14 @@ const faq = [
   },
 ];
 
-function CheckoutLink({ children }: { children: string }) {
+function CheckoutLink({ children, position }: { children: string; position: CtaPosition }) {
   return (
     <a
       href={CHECKOUT_URL}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() => recordCheckoutClick(position)}
+      onAuxClick={event => { if (event.button === 1) recordCheckoutClick(position); }}
       className="font-label inline-flex min-h-14 items-center justify-center border border-ember bg-ember px-7 py-4 text-center text-sm font-semibold uppercase tracking-[0.2em] text-accent-foreground transition hover:brightness-110"
     >
       {children}
@@ -135,7 +138,7 @@ function SalesPage() {
               atitude.
             </p>
             <div className="mt-9">
-              <CheckoutLink>Quero começar minha jornada</CheckoutLink>
+              <CheckoutLink position="hero">Quero começar minha jornada</CheckoutLink>
             </div>
           </div>
           <p className="eyebrow max-w-lg text-ink-foreground/60">
@@ -288,7 +291,7 @@ function SalesPage() {
             Comece uma jornada de 90 dias para transformar reflexão em atitude.
           </p>
           <div className="mt-9">
-            <CheckoutLink>Quero começar minha jornada</CheckoutLink>
+            <CheckoutLink position="bottom">Quero começar minha jornada</CheckoutLink>
           </div>
         </div>
       </section>

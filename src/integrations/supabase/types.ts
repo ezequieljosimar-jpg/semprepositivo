@@ -49,6 +49,45 @@ export type Database = {
           },
         ]
       }
+      devotional_checkout_clicks: {
+        Row: {
+          clicked_at: string
+          cta_position: string
+          event_id: string
+          path: string
+          referrer: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          clicked_at?: string
+          cta_position: string
+          event_id: string
+          path?: string
+          referrer?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          clicked_at?: string
+          cta_position?: string
+          event_id?: string
+          path?: string
+          referrer?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Relationships: []
+      }
       devotional_day_completions: {
         Row: {
           completed_at: string

@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Registrar somente cliques de saída de `/acesso`, validar segurança, persistência e checkout sem publicar.
+
 - [x] Acrescentar Oração e Descanso originais ao player, preservar preferências e validar reprodução/navegação.
 
 - [x] Concluir e validar CTA da página inicial para visitante, conta pending e conta active.

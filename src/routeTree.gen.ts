@@ -27,6 +27,7 @@ import { Route as AuthRetornoRouteImport } from './routes/auth.retorno'
 import { Route as DiaNRouteImport } from './routes/dia.$n'
 import { Route as FaseNRouteImport } from './routes/fase.$n'
 import { Route as IconsNameRouteImport } from './routes/icons.$name'
+import { Route as ApiPublicCheckoutClickRouteImport } from './routes/api/public/checkout-click'
 import { Route as ApiPublicKiwifyWebhookRouteImport } from './routes/api/public/kiwify/webhook'
 
 const IndexRoute = IndexRouteImport.update({
@@ -119,6 +120,11 @@ const IconsNameRoute = IconsNameRouteImport.update({
   path: '/icons/$name',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCheckoutClickRoute = ApiPublicCheckoutClickRouteImport.update({
+  id: '/api/public/checkout-click',
+  path: '/api/public/checkout-click',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicKiwifyWebhookRoute = ApiPublicKiwifyWebhookRouteImport.update({
   id: '/api/public/kiwify/webhook',
   path: '/api/public/kiwify/webhook',
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/dia/$n': typeof DiaNRoute
   '/fase/$n': typeof FaseNRoute
   '/icons/$name': typeof IconsNameRoute
+  '/api/public/checkout-click': typeof ApiPublicCheckoutClickRoute
   '/api/public/kiwify/webhook': typeof ApiPublicKiwifyWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/dia/$n': typeof DiaNRoute
   '/fase/$n': typeof FaseNRoute
   '/icons/$name': typeof IconsNameRoute
+  '/api/public/checkout-click': typeof ApiPublicCheckoutClickRoute
   '/api/public/kiwify/webhook': typeof ApiPublicKiwifyWebhookRoute
 }
 export interface FileRoutesById {
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/dia/$n': typeof DiaNRoute
   '/fase/$n': typeof FaseNRoute
   '/icons/$name': typeof IconsNameRoute
+  '/api/public/checkout-click': typeof ApiPublicCheckoutClickRoute
   '/api/public/kiwify/webhook': typeof ApiPublicKiwifyWebhookRoute
 }
 export interface FileRouteTypes {
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/dia/$n'
     | '/fase/$n'
     | '/icons/$name'
+    | '/api/public/checkout-click'
     | '/api/public/kiwify/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -231,6 +241,7 @@ export interface FileRouteTypes {
     | '/dia/$n'
     | '/fase/$n'
     | '/icons/$name'
+    | '/api/public/checkout-click'
     | '/api/public/kiwify/webhook'
   id:
     | '__root__'
@@ -252,6 +263,7 @@ export interface FileRouteTypes {
     | '/dia/$n'
     | '/fase/$n'
     | '/icons/$name'
+    | '/api/public/checkout-click'
     | '/api/public/kiwify/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -274,6 +286,7 @@ export interface RootRouteChildren {
   DiaNRoute: typeof DiaNRoute
   FaseNRoute: typeof FaseNRoute
   IconsNameRoute: typeof IconsNameRoute
+  ApiPublicCheckoutClickRoute: typeof ApiPublicCheckoutClickRoute
   ApiPublicKiwifyWebhookRoute: typeof ApiPublicKiwifyWebhookRoute
 }
 
@@ -405,6 +418,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IconsNameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/checkout-click': {
+      id: '/api/public/checkout-click'
+      path: '/api/public/checkout-click'
+      fullPath: '/api/public/checkout-click'
+      preLoaderRoute: typeof ApiPublicCheckoutClickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/kiwify/webhook': {
       id: '/api/public/kiwify/webhook'
       path: '/api/public/kiwify/webhook'
@@ -434,6 +454,7 @@ const rootRouteChildren: RootRouteChildren = {
   DiaNRoute: DiaNRoute,
   FaseNRoute: FaseNRoute,
   IconsNameRoute: IconsNameRoute,
+  ApiPublicCheckoutClickRoute: ApiPublicCheckoutClickRoute,
   ApiPublicKiwifyWebhookRoute: ApiPublicKiwifyWebhookRoute,
 }
 export const routeTree = rootRouteImport
