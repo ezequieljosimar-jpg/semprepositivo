@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BookOpen, Check, Music2, PenLine, Target } from "lucide-react";
+import { BookOpen, Check, Music2, PenLine, ShieldCheck, Star, Target } from "lucide-react";
 import cover from "@/assets/cover-cross-light.webp";
 import { Footer, SectionLabel } from "@/components/book";
 import {
@@ -64,6 +64,34 @@ const features = [
   },
 ];
 
+const heroBenefits = [
+  "90 dias de devocional diário",
+  "Direções para oração em cada dia",
+  "Desafios diários para aplicar o que você leu",
+  "Acesso por aplicativo no celular",
+];
+
+const testimonials = [
+  {
+    quote:
+      "Eu adiava minha vida com Deus todo dia. Esse devocional me deu uma rotina simples que eu consigo seguir. Os desafios diários mudaram minha semana.",
+    name: "Mariana S.",
+    city: "Belo Horizonte/MG",
+  },
+  {
+    quote:
+      "Confesso que é amargo mesmo no começo, porque te faz encarar verdades. Mas em 3 semanas eu já sentia diferença na minha paz. Valeu cada dia.",
+    name: "Rafael T.",
+    city: "Curitiba/PR",
+  },
+  {
+    quote:
+      "As direções de oração me ajudaram demais, porque eu nunca sabia como orar. Agora tenho um momento só meu com Deus todas as manhãs.",
+    name: "Patrícia L.",
+    city: "Fortaleza/CE",
+  },
+];
+
 const faq = [
   {
     question: "O devocional é físico?",
@@ -94,7 +122,7 @@ function CheckoutLink({ children, position }: { children: string; position: CtaP
       rel="noopener noreferrer"
       onClick={() => recordCheckoutClick(position)}
       onAuxClick={event => { if (event.button === 1) recordCheckoutClick(position); }}
-      className="font-label inline-flex min-h-14 items-center justify-center border border-ember bg-ember px-7 py-4 text-center text-sm font-semibold uppercase tracking-[0.2em] text-accent-foreground transition hover:brightness-110"
+      className="font-label inline-flex min-h-14 w-full items-center justify-center border border-ember bg-ember px-7 py-4 text-center text-sm font-semibold uppercase tracking-[0.2em] text-accent-foreground transition hover:brightness-110 sm:w-auto"
     >
       {children}
     </a>
@@ -137,8 +165,21 @@ function SalesPage() {
               90 dias para enfrentar a verdade, fortalecer sua fé e transformar reflexão em
               atitude.
             </p>
+            <ul className="mt-8 grid max-w-xl gap-3 sm:grid-cols-2">
+              {heroBenefits.map((benefit) => (
+                <li key={benefit} className="flex items-start gap-3">
+                  <Check className="mt-1 h-5 w-5 shrink-0 text-ember" aria-hidden="true" />
+                  <span className="leading-snug text-ink-foreground/90">{benefit}</span>
+                </li>
+              ))}
+            </ul>
             <div className="mt-9">
-              <CheckoutLink position="hero">Quero começar minha jornada</CheckoutLink>
+              <a
+                href="#oferta"
+                className="font-label inline-flex min-h-14 w-full items-center justify-center border border-ember bg-ember px-7 py-4 text-center text-sm font-semibold uppercase tracking-[0.2em] text-accent-foreground transition hover:brightness-110 sm:w-auto"
+              >
+                Quero começar minha jornada
+              </a>
             </div>
           </div>
           <p className="eyebrow max-w-lg text-ink-foreground/60">
@@ -148,6 +189,41 @@ function SalesPage() {
       </section>
 
       <section className="bg-background text-foreground">
+        <div className="mx-auto max-w-6xl px-6 py-24 md:px-10 md:py-32">
+          <SectionLabel>Prova social</SectionLabel>
+          <h2 className="font-display max-w-3xl text-5xl uppercase leading-none md:text-6xl">
+            Quem começou, não quer parar.
+          </h2>
+          <p className="font-label mt-5 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+            Relatos ilustrativos — serão substituídos por avaliações reais autorizadas.
+          </p>
+          <div className="mt-14 grid gap-px bg-border md:grid-cols-3">
+            {testimonials.map((item) => (
+              <figure key={item.name} className="flex flex-col bg-card px-7 py-9">
+                <div className="flex items-center gap-1 text-ember" aria-hidden="true">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <Star key={index} className="h-4 w-4 fill-current" />
+                  ))}
+                </div>
+                <span className="sr-only">Avaliação ilustrativa de 5 estrelas</span>
+                <blockquote className="mt-6 flex-1 text-lg leading-relaxed">
+                  “{item.quote}”
+                </blockquote>
+                <figcaption className="mt-8">
+                  <p className="font-display text-xl uppercase">
+                    {item.name} <span className="text-muted-foreground">· {item.city}</span>
+                  </p>
+                  <p className="font-label mt-2 text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
+                    Depoimento ilustrativo
+                  </p>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-t border-border bg-background text-foreground">
         <div className="mx-auto grid max-w-6xl gap-12 px-6 py-24 md:grid-cols-[0.85fr_1.15fr] md:px-10 md:py-32">
           <div>
             <SectionLabel>Um convite à mudança</SectionLabel>
@@ -269,6 +345,32 @@ function SalesPage() {
               </AccordionItem>
             ))}
           </Accordion>
+        </div>
+      </section>
+
+      <section id="oferta" className="scroll-mt-8 border-y border-ink-foreground/15">
+        <div className="mx-auto max-w-4xl px-6 py-24 text-center md:py-32">
+          <p className="eyebrow text-ember">De R$29,90 por R$19,90</p>
+          <h2 className="font-display mt-5 text-5xl uppercase leading-none md:text-6xl">
+            Comece hoje sua jornada.
+          </h2>
+          <div className="mt-10 flex flex-col items-center gap-2">
+            <p className="font-label text-lg uppercase tracking-[0.15em] text-ink-foreground/55 line-through">
+              R$29,90
+            </p>
+            <p className="font-display text-7xl leading-none text-ember md:text-8xl">R$19,90</p>
+            <p className="mt-2 text-lg text-ink-foreground/75">menos que um café por semana</p>
+          </div>
+          <div className="mt-10">
+            <CheckoutLink position="bottom">Quero meu devocional agora</CheckoutLink>
+          </div>
+          <div className="mx-auto mt-12 flex max-w-xl items-start gap-4 border border-ink-foreground/15 px-6 py-5 text-left">
+            <ShieldCheck className="mt-1 h-7 w-7 shrink-0 text-ember" aria-hidden="true" />
+            <p className="leading-relaxed text-ink-foreground/80">
+              <span className="font-display uppercase">Garantia de 7 dias.</span> Se não fizer
+              sentido pra você, devolvemos 100% do seu dinheiro em até 7 dias.
+            </p>
+          </div>
         </div>
       </section>
 
